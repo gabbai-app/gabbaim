@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1e40af">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="גבאים">
+<title>גבאים — מעלה עמוס</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="./css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="#/">
+      <i class="bi bi-book"></i> גבאים — מעלה עמוס
+    </a>
+    <div id="netStatus" class="badge bg-success ms-2 d-none" title="מחובר">
+      <i class="bi bi-wifi"></i>
+    </div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto" id="navLinks">
+        <li class="nav-item"><a class="nav-link" data-route="dashboard" href="#/"><i class="bi bi-speedometer2"></i> דשבורד</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="live" href="#/live"><i class="bi bi-lightning-fill"></i> מצב חי</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="members" href="#/members"><i class="bi bi-people-fill"></i> מתפללים</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="events" href="#/events"><i class="bi bi-calendar-event"></i> אירועים</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="reports" href="#/reports"><i class="bi bi-graph-up"></i> דוחות</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="settings" href="#/settings"><i class="bi bi-gear"></i> הגדרות</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <select id="synSelector" class="form-select form-select-sm bg-primary text-white border-light" style="min-width:170px;" aria-label="בית כנסת"></select>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div id="toastContainer" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:2000"></div>
+
+<main id="app" class="container-fluid p-3">
+  <div class="text-center py-5" id="bootLoader">
+    <div class="spinner-border text-primary" role="status" aria-label="טוען"></div>
+    <p class="mt-3 text-muted">מאתחל מערכת…</p>
+    <small class="text-muted d-block mt-1" id="bootHint"></small>
+  </div>
+</main>
+
+<div id="modalRoot"></div>
+
+<footer class="text-center text-muted small py-3">
+  <span>גבאים מעלה עמוס · v1.0</span>
+  <span class="mx-2">·</span>
+  <a href="#/settings" class="text-decoration-none">הגדרות</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./js/config.js"></script>
+<script src="./js/util.js"></script>
+<script src="./js/api.js"></script>
+<script src="./js/state.js"></script>
+<script src="./js/ui.js"></script>
+<script src="./js/pages/dashboard.js"></script>
+<script src="./js/pages/live.js"></script>
+<script src="./js/pages/members.js"></script>
+<script src="./js/pages/member_card.js"></script>
+<script src="./js/pages/events.js"></script>
+<script src="./js/pages/reports.js"></script>
+<script src="./js/pages/settings.js"></script>
+<script src="./js/router.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

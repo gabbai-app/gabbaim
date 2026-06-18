@@ -1,0 +1,252 @@
+/* גבאים מעלה עמוס — Main stylesheet */
+
+:root {
+  --bs-primary: #1e40af;
+  --bs-primary-rgb: 30, 64, 175;
+  --gabbai-bg: #f5f7fa;
+  --gabbai-card-bg: #ffffff;
+  --gabbai-border: #e5e7eb;
+  --gabbai-text: #1f2937;
+  --gabbai-muted: #6b7280;
+}
+
+* { -webkit-tap-highlight-color: rgba(30,64,175,0.15); }
+
+html, body {
+  font-family: 'Heebo', 'Segoe UI', system-ui, sans-serif;
+  background: var(--gabbai-bg);
+  color: var(--gabbai-text);
+  min-height: 100vh;
+}
+
+body { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ===== Navigation ===== */
+.navbar { padding: 0.6rem 1rem; }
+.navbar-brand { font-size: 1.15rem; }
+.navbar-nav .nav-link {
+  font-weight: 500;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.5rem;
+  transition: background 0.15s;
+}
+.navbar-nav .nav-link:hover { background: rgba(255, 255, 255, 0.12); }
+.navbar-nav .nav-link.active {
+  background: rgba(255, 255, 255, 0.22);
+  font-weight: 700;
+}
+
+#synSelector { font-weight: 600; }
+#synSelector option { color: #000; }
+
+#netStatus { padding: 0.3rem 0.5rem; font-size: 0.85rem; }
+
+/* ===== Cards ===== */
+.card {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.card-header {
+  background: #fff;
+  border-bottom: 1px solid var(--gabbai-border);
+  font-weight: 700;
+  border-radius: 1rem 1rem 0 0 !important;
+  padding: 0.9rem 1.1rem;
+}
+.card-body { padding: 1.1rem; }
+
+/* ===== Day banner ===== */
+.day-banner {
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  color: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+}
+.day-banner .parsha-name { font-size: 1.8rem; font-weight: 900; line-height: 1.1; }
+.day-banner .hebrew-date { font-size: 1.3rem; font-weight: 600; margin-top: 0.4rem; opacity: 0.95; }
+.day-banner .greg-date { opacity: 0.85; font-size: 0.95rem; margin-top: 0.2rem; }
+
+/* ===== Stat cards ===== */
+.stat-card {
+  background: linear-gradient(135deg, #1e40af 0%, #6c5ce7 100%);
+  color: #fff;
+  border-radius: 1rem;
+  padding: 1.2rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+.stat-card .stat-value { font-size: 2.2rem; font-weight: 900; line-height: 1; }
+.stat-card .stat-label { font-size: 0.95rem; opacity: 0.92; margin-top: 0.3rem; }
+.stat-card-green { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+.stat-card-orange { background: linear-gradient(135deg, #d97706 0%, #ef4444 100%); }
+.stat-card-purple { background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%); }
+
+/* ===== Avatar ===== */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+.avatar-sm { width: 28px; height: 28px; font-size: 0.75rem; }
+.avatar-lg { width: 72px; height: 72px; font-size: 1.6rem; }
+
+/* ===== Tribe badge ===== */
+.tribe-badge {
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.tribe-כהן    { background: #fef3c7; color: #92400e; }
+.tribe-לוי    { background: #dbeafe; color: #1e40af; }
+.tribe-ישראל  { background: #e5e7eb; color: #374151; }
+
+/* ===== Member row ===== */
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.7rem;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.member-row:hover { background: #eff6ff; }
+.member-row .info { flex: 1; min-width: 0; overflow: hidden; }
+.member-row .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.member-row .meta { font-size: 0.82rem; color: var(--gabbai-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.member-row.obligation-row { background: #fffbe6; }
+.member-row.obligation-row:hover { background: #fef3c7; }
+
+/* ===== Aliyah slot (live mode) ===== */
+.aliyah-slot {
+  border: 2px solid var(--gabbai-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  background: #fff;
+  user-select: none;
+}
+.aliyah-slot:hover {
+  border-color: var(--bs-primary);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+}
+.aliyah-slot.filled {
+  border-color: #10b981;
+  background: linear-gradient(90deg, #ecfdf5 0%, #fff 100%);
+}
+.aliyah-slot.empty { border-style: dashed; opacity: 0.85; }
+.aliyah-slot:active { transform: scale(0.99); }
+.aliyah-slot .slot-name {
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--bs-primary);
+  min-width: 90px;
+  flex-shrink: 0;
+}
+.aliyah-slot .member-name { font-weight: 700; }
+
+/* ===== Search bar in modal ===== */
+.search-bar {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  padding: 0.5rem 0;
+  z-index: 5;
+}
+.pick-list { max-height: 60vh; overflow-y: auto; }
+
+/* ===== Skeleton loader ===== */
+.skeleton {
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background-size: 200% 100%;
+  animation: skl 1.4s infinite;
+  border-radius: 0.7rem;
+}
+@keyframes skl {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ===== Empty state ===== */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+}
+.empty-state i { font-size: 3rem; opacity: 0.45; }
+
+/* ===== Search highlight ===== */
+mark { background: #fef08a; padding: 0 3px; border-radius: 3px; }
+
+/* ===== Buttons ===== */
+.btn { font-weight: 600; }
+.btn-icon { padding: 0.35rem 0.55rem; }
+
+/* ===== Modals ===== */
+.modal-content { border: none; border-radius: 1rem; }
+.modal-header { border-bottom: 1px solid var(--gabbai-border); }
+.modal-footer { border-top: 1px solid var(--gabbai-border); }
+
+/* ===== Tables ===== */
+.table { margin-bottom: 0; }
+.table thead th {
+  background: #f9fafb;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: none;
+  color: var(--gabbai-muted);
+}
+
+/* ===== Form ===== */
+.form-control, .form-select {
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.75rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(30, 64, 175, 0.15);
+}
+.form-label { font-weight: 600; margin-bottom: 0.3rem; font-size: 0.92rem; }
+
+/* ===== Toasts ===== */
+.toast-container { pointer-events: none; }
+.toast { pointer-events: auto; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .stat-card .stat-value { font-size: 1.7rem; }
+  .day-banner { padding: 1.1rem; }
+  .day-banner .parsha-name { font-size: 1.45rem; }
+  .day-banner .hebrew-date { font-size: 1.1rem; }
+  .navbar-nav .nav-link { padding: 0.6rem 0.85rem; }
+  .aliyah-slot { padding: 0.85rem; }
+  .aliyah-slot .slot-name { min-width: 70px; font-size: 1.05rem; }
+}
+
+@media (max-width: 576px) {
+  .day-banner .parsha-name { font-size: 1.3rem; }
+  .stat-card { padding: 0.95rem; }
+  .stat-card .stat-value { font-size: 1.45rem; }
+  .stat-card i { display: none; }
+}
+
+/* Print friendly */
+@media print {
+  .navbar, .btn, footer, #toastContainer { display: none !important; }
+  .card { box-shadow: none; border: 1px solid #ccc; }
+}

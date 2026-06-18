@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+node_modules/
+*.gz
+_push.json.gz
+_ver.json.gz
+_dep.json.gz
+_create.json.gz
