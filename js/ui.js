@@ -123,22 +123,6 @@ const UI = (function() {
     };
   }
 
-  function updateOnlineBadge() {
-    const badge = document.getElementById('netStatus');
-    if (!badge) return;
-    if (API.isOnline()) {
-      badge.classList.remove('d-none', 'bg-danger');
-      badge.classList.add('bg-success');
-      badge.innerHTML = '<i class="bi bi-wifi"></i>';
-      badge.title = 'מחובר';
-    } else {
-      badge.classList.remove('d-none', 'bg-success');
-      badge.classList.add('bg-danger');
-      badge.innerHTML = '<i class="bi bi-wifi-off"></i>';
-      badge.title = 'אופליין — מציג נתונים שמורים';
-    }
-  }
-
   return {
     toast: toast,
     confirm: confirm,
@@ -149,7 +133,6 @@ const UI = (function() {
     errorState: errorState,
     statCard: statCard,
     setActiveNav: setActiveNav,
-    renderSynSelector: renderSynSelector,
-    updateOnlineBadge: updateOnlineBadge
+    renderSynSelector: renderSynSelector
   };
 })();

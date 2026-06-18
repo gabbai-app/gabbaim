@@ -2,6 +2,8 @@
 
 מערכת ניהול עליות לתורה וגבאים, עבור שני בתי כנסת בישוב מעלה עמוס.
 
+**עובדת מקומית בלבד.** אין שרת, אין רישום משתמש, אין תלות בשירות חיצוני. הנתונים נשמרים במכשיר (localStorage), והעברה בין מכשירים נעשית בייצוא/ייבוא קובץ JSON.
+
 ## פיצ'רים
 
 - **דשבורד** — סקירת מצב עם חיובי השבת, סטטיסטיקות, ועליות אחרונות.
@@ -9,31 +11,42 @@
 - **מתפללים** — הוספה / עריכה / חיפוש / סטטיסטיקות פר מתפלל.
 - **אירועים** — יארצייטים חוזרים בתאריך עברי, חתן, בר מצווה, אבל וכו'.
 - **דוחות** — רוטציה, חלוקה הוגנת, רחוקים, חלוקה לשבטים, חיובים פתוחים.
-- **שלוחת ימות המשיח** — תפריט קולי לרישום עליות בקו 0772251404.
-- **PWA** — התקנה כאפליקציה, עבודה אופליין עם cache מקומי.
-- **Multi-tenant** — 2 בתי כנסת (ניתן להוסיף עוד).
+- **PWA** — התקנה כאפליקציה, עבודה אופליין מלאה.
+- **גיבוי/ייבוא** — קובץ JSON להעברה בין מכשירים.
+- **Multi-tenant** — 2 בתי כנסת מהיום הראשון (ניתן להוסיף עוד).
 
 ## ארכיטקטורה
 
-- **Frontend (GitHub Pages):** HTML/CSS/JS סטטי. Bootstrap 5 RTL + Heebo + Bootstrap Icons.
-- **Backend:** Google Apps Script Web App, מאחסן את הנתונים ב־Google Sheet.
-- **API:** קריאות `fetch` ל־Apps Script (GET ל־reads, POST form-urlencoded ל־writes).
-- **Cache:** localStorage עם TTL לקריאות שגרתיות, נופל ל־stale cache במצב אופליין.
+```
+┌──────────────────────────────┐
+│      GitHub Pages (UI)       │
+│ ─ HTML / CSS / JS סטטי       │
+│ ─ Bootstrap 5 RTL + Heebo    │
+│ ─ Service Worker (offline)   │
+└────────────┬─────────────────┘
+             │
+             ▼
+┌──────────────────────────────┐
+│      localStorage            │
+│  (כל הנתונים — JSON אחד)     │
+└──────────────────────────────┘
 
+       ⬇ ייצוא / ייבוא ⬇
+
+┌──────────────────────────────┐
+│   קובץ JSON                  │
+│  גבאים_גיבוי_YYYY-MM-DD.json │
+└──────────────────────────────┘
 ```
-┌──────────────┐    GET ?action=X        ┌──────────────┐
-│ GitHub Pages │ ─────────────────────▶  │ Apps Script  │
-│ (Static UI)  │                          │   Web App    │
-│              │  POST x-www-form-...     │              │
-│  fetch+cache │ ─────────────────────▶  │ doGet/doPost │
-└──────────────┘                          └──────┬───────┘
-                                                 │
-                                                 ▼
-                                          ┌──────────────┐
-                                          │ Google Sheet │
-                                          │  (7 tables)  │
-                                          └──────────────┘
-```
+
+## העברה למכשיר שני (לגבאי נוסף)
+
+1. במכשיר שלך: **הגדרות → ייצוא לקובץ**.
+2. שלח את הקובץ בוואטסאפ/מייל למכשיר השני.
+3. במכשיר השני (פתח את האתר פעם ראשונה): **הגדרות → ייבוא מקובץ**.
+4. עכשיו לשני המכשירים יש אותם נתונים. כל אחד יכול לערוך, אבל **אין סנכרון אוטומטי** — מי שעורך אצלו צריך לייצא ולהעביר שוב.
+
+לגיבוי שוטף — ייצא פעם בשבוע ושמור בענן (Drive / וואטסאפ).
 
 ## מבנה תיקיות
 
@@ -45,10 +58,12 @@ site/
 ├── css/style.css      # All styles
 ├── icons/             # PWA icons
 └── js/
-    ├── config.js      # API URL, cache TTL
+    ├── config.js      # App version
     ├── util.js        # Pure helpers (escape, dates, avatars)
-    ├── api.js         # Apps Script bridge (fetch + cache + retry)
-    ├── state.js       # Global state (synagogues, current)
+    ├── calendar.js    # Hebrew calendar engine (gregorian↔hebrew, parsha, yahrzeit)
+    ├── db.js          # localStorage CRUD + export/import
+    ├── api.js         # Domain operations (members, aliyot, events, reports)
+    ├── state.js       # Global app state (current synagogue)
     ├── ui.js          # Modals, toasts, skeletons
     ├── router.js      # Hash-based SPA routing
     ├── app.js         # Boot
@@ -62,14 +77,6 @@ site/
         └── settings.js
 ```
 
-## Apps Script Backend
-
-קוד הצד־שרת ב־`apps-script/` (mirror לפיתוח). פריסה: `clasp push` חסום בגלל NetFree, ולכן עושים זאת ב־`curl` עם `Content-Encoding: gzip` ישירות ל־`script.googleapis.com/v1/projects/<id>/content`.
-
-**פרטים:**
-- Script ID: `1rBy3Ak1sXBkvSkQLgPOlVQbqApsB1mZO5fExhOQgEe_06CbH_mFGg6vw`
-- Live URL: `https://script.google.com/macros/s/AKfycbywnCURd-UcTzwTQMhSNCeixib64kX8ACItjs97YdFWkID3cOuTGGJnORYpYWGE539l/exec`
-
 ## הפעלה מקומית
 
 ```bash
@@ -77,6 +84,12 @@ cd site
 python -m http.server 8000
 # http://localhost:8000
 ```
+
+## פיתוח
+
+זה אתר סטטי — אין build step. ערוך קובץ → רענן.
+
+לעדכון ב־production: commit + push → GitHub Pages בונה אוטומטית תוך דקה.
 
 ## רישיון
 

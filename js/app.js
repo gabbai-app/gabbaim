@@ -1,38 +1,26 @@
-// Application bootstrap
+// Application bootstrap — fully client-side, no network dependencies
 
 (function() {
-  function setHint(s) {
-    const el = document.getElementById('bootHint');
-    if (el) el.textContent = s;
-  }
-
   async function boot() {
     try {
-      setHint('בודק חיבור לשרת…');
-      // Ensure backend Sheet is initialized
-      try {
-        await API.read('ensureInit', {}, { forceFresh: true, cacheTtl: 60 * 1000 });
-      } catch (e) {
-        // continue — might still work with cache from a previous session
-        console.warn('ensureInit failed', e);
-      }
+      // 1. Initialize the local database (seeds defaults on first run)
+      DB.init();
 
-      setHint('טוען בתי כנסת…');
+      // 2. Load synagogues into application state
       await STATE.initSynagogues();
 
-      // Wire up reactive UI
+      // 3. React to state changes — update the synagogue selector in nav
       STATE.onChange(function(key) {
-        if (key === 'synagogues' || key === 'currentSynagogueId') UI.renderSynSelector();
+        if (key === 'synagogues' || key === 'currentSynagogueId') {
+          UI.renderSynSelector();
+        }
       });
-      API.onConnectivityChange(function() { UI.updateOnlineBadge(); });
 
+      // 4. Render the initial selector and wire navbar collapse on mobile
       UI.renderSynSelector();
-      UI.updateOnlineBadge();
 
-      // Wire route nav clicks (besides hash navigation)
       document.querySelectorAll('#navLinks .nav-link').forEach(function(a) {
         a.addEventListener('click', function() {
-          // collapse navbar on mobile
           const collapse = document.getElementById('mainNav');
           if (collapse && collapse.classList.contains('show')) {
             bootstrap.Collapse.getInstance(collapse)?.hide();
@@ -40,22 +28,17 @@
         });
       });
 
+      // 5. Start router
       ROUTER.init();
 
-      // Register service worker for PWA (best effort, ignore errors)
+      // 6. Register Service Worker for installable PWA
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(function() {});
       }
-
-      // Periodically ping to detect online state
-      setInterval(function() {
-        API.ping().catch(function() {});
-      }, 60000);
     } catch (e) {
       console.error('Boot failed', e);
-      const app = document.getElementById('app');
-      app.innerHTML = UI.errorState(
-        'לא הצלחנו לטעון את המערכת: ' + e.message + '. ייתכן שה־URL חסום בנטפרי או שה־Apps Script לא מאושר עדיין.',
+      document.getElementById('app').innerHTML = UI.errorState(
+        'שגיאת אתחול: ' + e.message,
         function() { window.location.reload(); }
       );
     }

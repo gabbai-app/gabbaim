@@ -1,12 +1,14 @@
-// Service Worker — basic offline caching for static assets only
-// (Live API responses are cached in localStorage by api.js)
-const CACHE_NAME = 'gabbai-v1';
+// Service Worker — cache-first for all static assets so the app works fully offline.
+// Bump CACHE_NAME when assets change.
+const CACHE_NAME = 'gabbai-v1-1';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './js/config.js',
   './js/util.js',
+  './js/calendar.js',
+  './js/db.js',
   './js/api.js',
   './js/state.js',
   './js/ui.js',
@@ -19,7 +21,9 @@ const STATIC_ASSETS = [
   './js/pages/events.js',
   './js/pages/reports.js',
   './js/pages/settings.js',
-  './manifest.json'
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 self.addEventListener('install', function(e) {
@@ -42,23 +46,34 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-  const url = new URL(e.request.url);
-  // Skip API requests — those go through normal fetch + localStorage cache
-  if (url.hostname.indexOf('script.google.com') >= 0) return;
-  if (url.hostname.indexOf('script.googleusercontent.com') >= 0) return;
-  // Skip non-GET
   if (e.request.method !== 'GET') return;
-
+  const url = new URL(e.request.url);
+  // For our own origin: cache-first
+  if (url.origin === self.location.origin) {
+    e.respondWith(
+      caches.match(e.request).then(function(cached) {
+        if (cached) return cached;
+        return fetch(e.request).then(function(resp) {
+          if (resp.ok && resp.type === 'basic') {
+            const clone = resp.clone();
+            caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
+          }
+          return resp;
+        }).catch(function() { return cached; });
+      })
+    );
+    return;
+  }
+  // For CDN assets (Bootstrap, Heebo, etc.): network-first, fall back to cache
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      if (cached) return cached;
-      return fetch(e.request).then(function(resp) {
-        if (resp.ok && resp.type === 'basic') {
-          const clone = resp.clone();
-          caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
-        }
-        return resp;
-      }).catch(function() { return cached; });
+    fetch(e.request).then(function(resp) {
+      if (resp.ok) {
+        const clone = resp.clone();
+        caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
+      }
+      return resp;
+    }).catch(function() {
+      return caches.match(e.request);
     })
   );
 });

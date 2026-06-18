@@ -22,9 +22,6 @@
     <a class="navbar-brand fw-bold" href="#/">
       <i class="bi bi-book"></i> גבאים — מעלה עמוס
     </a>
-    <div id="netStatus" class="badge bg-success ms-2 d-none" title="מחובר">
-      <i class="bi bi-wifi"></i>
-    </div>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -49,22 +46,23 @@
 <main id="app" class="container-fluid p-3">
   <div class="text-center py-5" id="bootLoader">
     <div class="spinner-border text-primary" role="status" aria-label="טוען"></div>
-    <p class="mt-3 text-muted">מאתחל מערכת…</p>
-    <small class="text-muted d-block mt-1" id="bootHint"></small>
+    <p class="mt-3 text-muted">טוען…</p>
   </div>
 </main>
 
 <div id="modalRoot"></div>
 
 <footer class="text-center text-muted small py-3">
-  <span>גבאים מעלה עמוס · v1.0</span>
+  <span>גבאים מעלה עמוס · v1.0 · נתונים שמורים מקומית במכשיר</span>
   <span class="mx-2">·</span>
-  <a href="#/settings" class="text-decoration-none">הגדרות</a>
+  <a href="#/settings" class="text-decoration-none">גיבוי / העברה</a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="./js/config.js"></script>
 <script src="./js/util.js"></script>
+<script src="./js/calendar.js"></script>
+<script src="./js/db.js"></script>
 <script src="./js/api.js"></script>
 <script src="./js/state.js"></script>
 <script src="./js/ui.js"></script>
