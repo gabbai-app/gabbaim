@@ -103,6 +103,22 @@ const PAGE_SETTINGS = (function() {
       '</div>' +
       '</div></div>';
 
+    // Reminders
+    const perm = (typeof REMINDERS !== 'undefined') ? REMINDERS.permission() : 'unsupported';
+    const permBadge = {
+      granted:     '<span class="badge bg-success">מופעל</span>',
+      denied:      '<span class="badge bg-danger">חסום בדפדפן</span>',
+      default:     '<span class="badge bg-secondary">לא מופעל</span>',
+      unsupported: '<span class="badge bg-warning text-dark">לא נתמך</span>'
+    }[perm] || '<span class="badge bg-secondary">לא מופעל</span>';
+    html += '<div class="card mb-3"><div class="card-header"><i class="bi bi-bell"></i> תזכורות</div><div class="card-body">' +
+      '<p class="text-muted small mb-2">קבל התראות בדפדפן ביום חמישי / ערב שבת על חיובים השבת ומנהגי שבת מיוחדת.</p>' +
+      '<div class="mb-2"><b>סטטוס:</b> ' + permBadge + '</div>' +
+      (perm === 'default' ? '<button class="btn btn-primary" id="enaNotifBtn"><i class="bi bi-bell"></i> הפעל תזכורות</button>' : '') +
+      (perm === 'granted' ? '<button class="btn btn-outline-primary" id="testNotifBtn"><i class="bi bi-bell-fill"></i> שלח התראת בדיקה</button>' : '') +
+      (perm === 'denied' ? '<p class="small text-danger mb-0">נחסם בהגדרות הדפדפן. כדי להפעיל: לחץ על המנעול ליד ה-URL → "הרשאות" → התראות</p>' : '') +
+      '</div></div>';
+
     // Stats / Danger zone
     html += '<div class="card mb-3"><div class="card-header"><i class="bi bi-info-circle"></i> מידע</div><div class="card-body">' +
       '<div class="row g-2 text-center small">' +
@@ -159,6 +175,16 @@ const PAGE_SETTINGS = (function() {
       const res = await SYNC.pullOnly();
       if (res.ok) { UI.toast('נמשך מ-GitHub', 'success'); render(document.getElementById('app')); }
       else { UI.toast('שגיאה: ' + res.error, 'danger'); }
+    });
+    document.getElementById('enaNotifBtn')?.addEventListener('click', async function() {
+      const r = await REMINDERS.request();
+      if (r === 'granted') { UI.toast('תזכורות הופעלו', 'success'); render(document.getElementById('app')); }
+      else if (r === 'denied') UI.toast('הרשאה נדחתה', 'danger');
+      else if (r === 'unsupported') UI.toast('הדפדפן לא תומך', 'warning');
+    });
+    document.getElementById('testNotifBtn')?.addEventListener('click', function() {
+      REMINDERS.notify('שלום ' + (AUTH.actorName() || ''), 'התראות מסונכרנות ועובדות', 'test_' + Date.now());
+      UI.toast('נשלח', 'success');
     });
 
     document.querySelectorAll('[data-edit-syn]').forEach(function(b) {

@@ -61,8 +61,11 @@
       SYNC.start();
 
       // Auto-sync when window regains focus / network returns
-      window.addEventListener('online', function() { SYNC.syncNow(); });
-      window.addEventListener('focus', function() { SYNC.syncNow(); });
+      window.addEventListener('online', function() { SYNC.syncNow(); REMINDERS.checkAndRemind(); });
+      window.addEventListener('focus', function() { SYNC.syncNow(); REMINDERS.checkAndRemind(); });
+
+      // First reminder check after boot (gives sync a moment to finish)
+      setTimeout(function() { REMINDERS.checkAndRemind(); }, 8000);
 
       // Global error boundary — catch any uncaught error and show a friendly toast
       window.addEventListener('error', function(ev) {

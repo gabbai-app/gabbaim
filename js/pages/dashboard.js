@@ -40,6 +40,25 @@ const PAGE_DASHBOARD = (function() {
     html += UI.statCard('לא עלו 90+ יום', absent.length, 'bi-clock-history', 'stat-card-orange');
     html += '</div>';
 
+    // Minhagim panel for the upcoming shabbat
+    const minhagimList = (window.MINHAGIM && MINHAGIM.forDayInfo(hb)) || [];
+    if (minhagimList.length) {
+      html += '<div class="card mb-3"><div class="card-header bg-info text-white">' +
+        '<i class="bi bi-info-circle"></i> מנהגי השבת הקרובה</div><div class="card-body">';
+      minhagimList.forEach(function(m) {
+        html += '<div class="mb-2"><b>' + UTIL.escHtml(m.name) + ':</b> ' + UTIL.escHtml(m.summary);
+        if (m.links && m.links.length) {
+          html += ' <span class="ms-2">';
+          m.links.forEach(function(l) {
+            html += '<a href="' + UTIL.escAttr(l.url) + '" target="_blank" class="badge bg-light text-info text-decoration-none me-1">' + UTIL.escHtml(l.label) + '</a>';
+          });
+          html += '</span>';
+        }
+        html += '</div>';
+      });
+      html += '</div></div>';
+    }
+
     html += '<div class="row g-3">';
     html += '<div class="col-lg-6"><div class="card"><div class="card-header"><i class="bi bi-exclamation-circle text-warning"></i> חיובים השבת (' + obs.length + ')</div><div class="card-body">';
     html += obs.length ? obs.map(_obsRow).join('') : UI.emptyState('אין חיובים השבוע');

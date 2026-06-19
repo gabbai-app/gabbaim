@@ -43,6 +43,7 @@ const PAGE_LIVE = (function() {
     let html = '';
     html += _renderBanner(info);
     html += _renderObligations(events);
+    html += _renderMinhagim(info);
     html += _renderDateNav(info);
 
     if (!kavodGroups.length) {
@@ -86,6 +87,34 @@ const PAGE_LIVE = (function() {
         ' · ' + UTIL.escHtml(dayLabel) + ' · ' + UTIL.escHtml(info.aliyot_count) + ' עליות</div>' +
       (chips ? '<div class="mt-2">' + chips + '</div>' : '') +
       '</div>';
+  }
+
+  function _renderMinhagim(info) {
+    const list = (window.MINHAGIM && MINHAGIM.forDayInfo(info)) || [];
+    if (!list.length) return '';
+    let html = '<div class="card mb-3 minhagim-card">' +
+      '<div class="card-header bg-info text-white"><i class="bi bi-info-circle"></i> מנהגים השבת</div>' +
+      '<div class="card-body">';
+    list.forEach(function(m) {
+      html += '<div class="minhag-block mb-3">';
+      html += '<h5 class="mb-1"><i class="bi bi-bookmark-star text-warning"></i> ' + UTIL.escHtml(m.name) + '</h5>';
+      html += '<p class="text-muted mb-2 small">' + UTIL.escHtml(m.summary) + '</p>';
+      if (m.customs && m.customs.length) {
+        html += '<ul class="mb-2">';
+        m.customs.forEach(function(c) { html += '<li>' + UTIL.escHtml(c) + '</li>'; });
+        html += '</ul>';
+      }
+      if (m.links && m.links.length) {
+        html += '<div class="d-flex gap-2 flex-wrap"><span class="small text-muted me-1">קישורים:</span>';
+        m.links.forEach(function(l) {
+          html += '<a href="' + UTIL.escAttr(l.url) + '" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-box-arrow-up-right"></i> ' + UTIL.escHtml(l.label) + '</a>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div></div>';
+    return html;
   }
 
   function _renderObligations(events) {
