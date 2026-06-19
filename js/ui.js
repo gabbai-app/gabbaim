@@ -166,8 +166,41 @@ const UI = (function() {
     sel.value = STATE.get('currentSynagogueId') || '';
     sel.onchange = function() {
       STATE.setCurrentSynagogue(sel.value);
+      applySynagogueTheme();
       ROUTER.refresh();
     };
+    applySynagogueTheme();
+  }
+
+  function applySynagogueTheme() {
+    const syns = STATE.get('synagogues') || [];
+    const cur = syns.find(function(s) { return s.id === STATE.get('currentSynagogueId'); });
+    if (!cur) return;
+    const color = cur.color || '#1e40af';
+    const root = document.documentElement;
+    root.style.setProperty('--syn-color', color);
+    root.style.setProperty('--syn-color-rgb', _hexToRgb(color));
+
+    // Color the navbar bg, the synagogue selector, and the synagogue ribbon
+    const nav = document.querySelector('.navbar');
+    if (nav) nav.style.background = color;
+
+    // Update visible synagogue chip
+    let chip = document.getElementById('synBigBadge');
+    if (!chip) {
+      chip = document.createElement('div');
+      chip.id = 'synBigBadge';
+      chip.className = 'syn-big-badge';
+      document.body.insertBefore(chip, document.body.firstChild);
+    }
+    chip.innerHTML = '<i class="bi bi-buildings-fill"></i> אתה עובד כעת ב־<b>' + UTIL.escHtml(cur.name) + '</b>';
+    chip.style.background = color;
+  }
+
+  function _hexToRgb(hex) {
+    const m = String(hex).replace('#', '').match(/.{1,2}/g);
+    if (!m || m.length < 3) return '30,64,175';
+    return parseInt(m[0], 16) + ',' + parseInt(m[1], 16) + ',' + parseInt(m[2], 16);
   }
 
   return {
@@ -181,6 +214,7 @@ const UI = (function() {
     statCard: statCard,
     setActiveNav: setActiveNav,
     renderSynSelector: renderSynSelector,
-    renderUserMenu: renderUserMenu
+    renderUserMenu: renderUserMenu,
+    applySynagogueTheme: applySynagogueTheme
   };
 })();

@@ -26,8 +26,12 @@ const PAGE_SETTINGS = (function() {
     if (syns.length) {
       html += '<ul class="list-group">';
       syns.forEach(function(s) {
+        const color = s.color || '#1e40af';
         html += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+          '<div class="d-flex align-items-center gap-3">' +
+          '<span style="display:inline-block;width:24px;height:24px;border-radius:50%;background:' + UTIL.escAttr(color) + ';border:2px solid #fff;box-shadow:0 0 0 1px #ccc;"></span>' +
           '<div><b>' + UTIL.escHtml(s.name) + '</b> <small class="text-muted">' + UTIL.escHtml(s.address || '') + ' · ' + UTIL.escHtml(s.nusach || '') + '</small></div>' +
+          '</div>' +
           '<div class="btn-group btn-group-sm">' +
           '<button class="btn btn-outline-secondary" data-edit-syn="' + UTIL.escAttr(s.id) + '"><i class="bi bi-pencil"></i></button>' +
           '<button class="btn btn-outline-danger" data-del-syn="' + UTIL.escAttr(s.id) + '"><i class="bi bi-trash"></i></button>' +
@@ -275,20 +279,38 @@ const PAGE_SETTINGS = (function() {
   }
 
   function _openAddSyn() {
+    const presets = ['#1e40af', '#059669', '#d97706', '#7c3aed', '#dc2626', '#0891b2', '#ea580c', '#0ea5e9'];
+    const swatchHtml = presets.map(function(c, i) {
+      const sel = i === 0 ? 'border:3px solid #000;' : 'border:2px solid #ddd;';
+      return '<button type="button" class="preset-swatch" data-color="' + UTIL.escAttr(c) + '" style="width:36px;height:36px;border-radius:50%;background:' + UTIL.escAttr(c) + ';' + sel + ';margin:2px;cursor:pointer;"></button>';
+    }).join('');
     const body = '<form id="synForm"><div class="row g-3">' +
       '<div class="col-md-6"><label class="form-label">שם *</label><input class="form-control" name="name" required></div>' +
       '<div class="col-md-6"><label class="form-label">כתובת</label><input class="form-control" name="address"></div>' +
       '<div class="col-md-6"><label class="form-label">נוסח</label><select class="form-select" name="nusach"><option>ספרד</option><option>אשכנז</option><option>ספרדי</option><option>חב"ד</option><option>אחר</option></select></div>' +
+      '<div class="col-md-6"><label class="form-label">צבע מזהה</label>' +
+      '<div class="d-flex align-items-center gap-2">' +
+      '<input type="color" class="form-control form-control-color" name="color" value="#1e40af" style="width:60px;height:38px;">' +
+      '<div class="flex-grow-1">' + swatchHtml + '</div>' +
+      '</div></div>' +
       '<div class="col-12"><label class="form-label">הערות</label><textarea class="form-control" name="notes"></textarea></div>' +
       '</div></form>';
     const footer = '<button class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button class="btn btn-primary" id="sv">שמור</button>';
     UI.modal('הוסף בית כנסת', body, footer);
+    document.querySelectorAll('.preset-swatch').forEach(function(b) {
+      b.addEventListener('click', function() {
+        document.querySelector('#synForm [name=color]').value = b.dataset.color;
+        document.querySelectorAll('.preset-swatch').forEach(function(x) { x.style.border = '2px solid #ddd'; });
+        b.style.border = '3px solid #000';
+      });
+    });
     document.getElementById('sv').addEventListener('click', async function() {
       const data = UTIL.formData(document.getElementById('synForm'));
       if (!data.name) { UI.toast('שם חובה', 'warning'); return; }
       try {
         await API.write('addSynagogue', data);
         await STATE.initSynagogues();
+        UI.applySynagogueTheme();
         UI.toast('נוסף', 'success');
         UI.closeModal();
         render(document.getElementById('app'));
@@ -300,19 +322,39 @@ const PAGE_SETTINGS = (function() {
     const s = await API.read('listSynagogues', {});
     const syn = s.find(function(x) { return x.id === id; });
     if (!syn) return;
+    const presets = ['#1e40af', '#059669', '#d97706', '#7c3aed', '#dc2626', '#0891b2', '#ea580c', '#0ea5e9'];
+    const swatchHtml = presets.map(function(c) {
+      const sel = c === (syn.color || '') ? 'border:3px solid #000;' : 'border:2px solid #ddd;';
+      return '<button type="button" class="preset-swatch" data-color="' + UTIL.escAttr(c) + '" style="width:36px;height:36px;border-radius:50%;background:' + UTIL.escAttr(c) + ';' + sel + ';margin:2px;cursor:pointer;"></button>';
+    }).join('');
     const body = '<form id="synForm"><input type="hidden" name="id" value="' + UTIL.escAttr(syn.id) + '"><div class="row g-3">' +
       '<div class="col-md-6"><label class="form-label">שם *</label><input class="form-control" name="name" value="' + UTIL.escAttr(syn.name) + '" required></div>' +
       '<div class="col-md-6"><label class="form-label">כתובת</label><input class="form-control" name="address" value="' + UTIL.escAttr(syn.address || '') + '"></div>' +
       '<div class="col-md-6"><label class="form-label">נוסח</label><input class="form-control" name="nusach" value="' + UTIL.escAttr(syn.nusach || '') + '"></div>' +
+      '<div class="col-md-6"><label class="form-label">צבע מזהה</label>' +
+      '<div class="d-flex align-items-center gap-2">' +
+      '<input type="color" class="form-control form-control-color" name="color" value="' + UTIL.escAttr(syn.color || '#1e40af') + '" style="width:60px;height:38px;">' +
+      '<div class="flex-grow-1">' + swatchHtml + '</div>' +
+      '</div></div>' +
       '<div class="col-12"><label class="form-label">הערות</label><textarea class="form-control" name="notes">' + UTIL.escHtml(syn.notes || '') + '</textarea></div>' +
       '</div></form>';
     const footer = '<button class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button class="btn btn-primary" id="sv">שמור</button>';
     UI.modal('ערוך בית כנסת', body, footer);
+
+    document.querySelectorAll('.preset-swatch').forEach(function(b) {
+      b.addEventListener('click', function() {
+        document.querySelector('#synForm [name=color]').value = b.dataset.color;
+        document.querySelectorAll('.preset-swatch').forEach(function(x) { x.style.border = '2px solid #ddd'; });
+        b.style.border = '3px solid #000';
+      });
+    });
+
     document.getElementById('sv').addEventListener('click', async function() {
       const data = UTIL.formData(document.getElementById('synForm'));
       try {
         await API.write('updateSynagogue', data);
         await STATE.initSynagogues();
+        UI.applySynagogueTheme();
         UI.toast('עודכן', 'success');
         UI.closeModal();
         render(document.getElementById('app'));

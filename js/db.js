@@ -6,7 +6,7 @@
 const DB = (function() {
   const STORAGE_KEY = 'gabbai_db_v1';
   const SCHEMA = {
-    synagogues: ['id', 'name', 'address', 'nusach', 'notes', 'created_at'],
+    synagogues: ['id', 'name', 'address', 'nusach', 'color', 'notes', 'created_at', 'updated_at'],
     members:    ['id', 'first_name', 'last_name', 'tribe', 'father_name', 'phone', 'primary_synagogue_id', 'also_synagogue_ids', 'status', 'notes', 'created_at', 'updated_at'],
     gabbais:    ['id', 'name', 'phone', 'pin_code', 'synagogue_id', 'role', 'status', 'created_at'],
     events:     ['id', 'member_id', 'synagogue_id', 'type', 'hebrew_day', 'hebrew_month', 'hebrew_year_first', 'recurring', 'relevant_shabbat', 'status', 'notes', 'created_at'],
@@ -46,8 +46,8 @@ const DB = (function() {
     const now = new Date().toISOString();
     return {
       synagogues: [
-        { id: 'sg1', name: 'בית כנסת מרכזי', address: 'מעלה עמוס', nusach: 'ספרד', notes: '', created_at: now },
-        { id: 'sg2', name: 'בית כנסת שני', address: 'מעלה עמוס', nusach: 'אשכנז', notes: '', created_at: now }
+        { id: 'sg1', name: 'בית כנסת מרכזי', address: 'מעלה עמוס', nusach: 'ספרד', color: '#1e40af', notes: '', created_at: now },
+        { id: 'sg2', name: 'בית כנסת שני', address: 'מעלה עמוס', nusach: 'אשכנז', color: '#059669', notes: '', created_at: now }
       ],
       members: [],
       gabbais: [
@@ -71,6 +71,11 @@ const DB = (function() {
       const seed = _seed();
       Object.keys(seed).forEach(function(k) {
         if (!(k in data)) data[k] = seed[k];
+      });
+      // Migration: ensure every synagogue has a color
+      const palette = ['#1e40af', '#059669', '#d97706', '#7c3aed', '#dc2626', '#0891b2'];
+      (data.synagogues || []).forEach(function(s, i) {
+        if (!s.color) s.color = palette[i % palette.length];
       });
       _data = data;
     }

@@ -3,11 +3,43 @@
 :root {
   --bs-primary: #1e40af;
   --bs-primary-rgb: 30, 64, 175;
+  --syn-color: #1e40af;
+  --syn-color-rgb: 30, 64, 175;
   --gabbai-bg: #f5f7fa;
   --gabbai-card-bg: #ffffff;
   --gabbai-border: #e5e7eb;
   --gabbai-text: #1f2937;
   --gabbai-muted: #6b7280;
+}
+
+/* ===== Synagogue indicator (top of screen) ===== */
+.syn-big-badge {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  text-align: center;
+  padding: 6px 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0.2px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.syn-big-badge i { margin-left: 6px; opacity: 0.85; }
+.syn-big-badge b { font-weight: 800; padding: 0 4px; }
+
+/* Highlight the synagogue dropdown in the navbar */
+#synSelector {
+  border-width: 2px !important;
+  font-weight: 700 !important;
+}
+
+/* Banners + key elements use syn-color */
+.day-banner {
+  background: linear-gradient(135deg, var(--syn-color) 0%, rgba(var(--syn-color-rgb), 0.7) 100%) !important;
+}
+.stat-card {
+  background: linear-gradient(135deg, var(--syn-color) 0%, rgba(var(--syn-color-rgb), 0.7) 100%) !important;
 }
 
 * { -webkit-tap-highlight-color: rgba(30,64,175,0.15); }
