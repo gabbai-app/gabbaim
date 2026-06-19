@@ -64,6 +64,24 @@
       window.addEventListener('online', function() { SYNC.syncNow(); });
       window.addEventListener('focus', function() { SYNC.syncNow(); });
 
+      // Global error boundary — catch any uncaught error and show a friendly toast
+      window.addEventListener('error', function(ev) {
+        try { UI.toast('שגיאה: ' + (ev.message || 'לא ידוע'), 'danger'); } catch (e) {}
+      });
+      window.addEventListener('unhandledrejection', function(ev) {
+        const msg = ev.reason && (ev.reason.message || ev.reason);
+        if (String(msg).indexOf('PERMISSION_DENIED') >= 0) return; // we already toasted
+        try { UI.toast('שגיאה: ' + msg, 'danger'); } catch (e) {}
+      });
+
+      // PWA install prompt — capture event, show our own button
+      let _deferredInstall = null;
+      window.addEventListener('beforeinstallprompt', function(ev) {
+        ev.preventDefault();
+        _deferredInstall = ev;
+        _showInstallPrompt(_deferredInstall);
+      });
+
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(function() {});
       }
@@ -74,6 +92,31 @@
         function() { window.location.reload(); }
       );
     }
+  }
+
+  function _showInstallPrompt(promptEvent) {
+    if (localStorage.getItem('gabbai_install_dismissed')) return;
+    const html =
+      '<div id="installBar" class="alert alert-primary alert-dismissible m-2 d-flex justify-content-between align-items-center" role="alert">' +
+      '<div><i class="bi bi-download"></i> התקן את האפליקציה למסך הבית לעבודה מהירה יותר</div>' +
+      '<div class="d-flex gap-2 align-items-center">' +
+      '<button class="btn btn-sm btn-primary" id="instOk">התקן</button>' +
+      '<button class="btn-close" id="instNo" aria-label="סגור"></button>' +
+      '</div></div>';
+    const main = document.getElementById('app');
+    main.insertAdjacentHTML('afterbegin', html);
+    document.getElementById('instOk').addEventListener('click', async function() {
+      try {
+        promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice.outcome === 'accepted') UI.toast('הותקן', 'success');
+      } catch (e) {}
+      document.getElementById('installBar')?.remove();
+    });
+    document.getElementById('instNo').addEventListener('click', function() {
+      localStorage.setItem('gabbai_install_dismissed', '1');
+      document.getElementById('installBar')?.remove();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', boot);

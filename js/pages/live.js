@@ -107,7 +107,7 @@ const PAGE_LIVE = (function() {
 
   function _renderDateNav(info) {
     return '<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">' +
-      '<div class="btn-group">' +
+      '<div class="btn-group flex-wrap">' +
         '<button id="prevDay" class="btn btn-sm btn-outline-secondary"><i class="bi bi-chevron-right"></i> יום קודם</button>' +
         '<button id="prevWeek" class="btn btn-sm btn-outline-secondary">שבת קודמת</button>' +
         '<button id="goToday" class="btn btn-sm btn-outline-primary">היום</button>' +
@@ -115,8 +115,10 @@ const PAGE_LIVE = (function() {
         '<button id="nextWeek" class="btn btn-sm btn-outline-secondary">שבת הבאה</button>' +
         '<button id="nextDay" class="btn btn-sm btn-outline-secondary">יום הבא <i class="bi bi-chevron-left"></i></button>' +
       '</div>' +
+      '<div class="d-flex gap-2 flex-wrap">' +
+      '<a href="#/print/' + UTIL.escAttr(info.date) + '" class="btn btn-sm btn-outline-success"><i class="bi bi-printer"></i> הדפס סידור</a>' +
       '<input type="date" id="datePick" class="form-control form-control-sm" style="width:auto;" value="' + UTIL.escAttr(info.date) + '">' +
-      '</div>';
+      '</div></div>';
   }
 
   function _renderGroup(group, filledMap, filledMemberMap, info) {

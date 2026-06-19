@@ -118,15 +118,21 @@ const UI = (function() {
       wrap.innerHTML = '<a href="#/login" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-in-left"></i> כניסה</a>';
       return;
     }
+    const role = PERM.roleLabel(g.role);
+    let extraItems = '';
+    if (PERM.can('page:audit')) {
+      extraItems += '<li><a class="dropdown-item" href="#/audit"><i class="bi bi-shield-lock"></i> יומן פעילות</a></li>';
+    }
     wrap.innerHTML =
       '<div class="dropdown">' +
       '<button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">' +
       '<i class="bi bi-person-circle"></i> ' + UTIL.escHtml(g.name) +
       '</button>' +
       '<ul class="dropdown-menu dropdown-menu-end">' +
-      '<li><h6 class="dropdown-header">' + UTIL.escHtml(g.name) +
-      ' <small class="text-muted">' + UTIL.escHtml({super_admin:'מנהל על', chief:'גבאי ראשי', secondary:'גבאי משני'}[g.role] || g.role) + '</small></h6></li>' +
-      '<li><a class="dropdown-item" href="#/settings"><i class="bi bi-gear"></i> הגדרות</a></li>' +
+      '<li><h6 class="dropdown-header">' + UTIL.escHtml(g.name) + ' <small class="text-muted">' + UTIL.escHtml(role) + '</small></h6></li>' +
+      '<li><a class="dropdown-item" href="#/print"><i class="bi bi-printer"></i> הדפס סידור</a></li>' +
+      (PERM.can('page:settings') ? '<li><a class="dropdown-item" href="#/settings"><i class="bi bi-gear"></i> הגדרות</a></li>' : '') +
+      extraItems +
       '<li><hr class="dropdown-divider"></li>' +
       '<li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> התנתק</a></li>' +
       '</ul></div>';
@@ -135,6 +141,18 @@ const UI = (function() {
       AUTH.logout();
       UI.toast('התנתקת', 'info');
       window.location.hash = '#/login';
+    });
+    // Apply role-based visibility to nav links too
+    _applyNavPermissions();
+  }
+
+  function _applyNavPermissions() {
+    document.querySelectorAll('#navLinks .nav-link').forEach(function(a) {
+      const route = a.dataset.route;
+      const map = { dashboard:'page:dashboard', live:'page:live', members:'page:members', events:'page:events', reports:'page:reports', settings:'page:settings' };
+      const perm = map[route];
+      if (perm && !PERM.can(perm)) a.parentElement.style.display = 'none';
+      else a.parentElement.style.display = '';
     });
   }
 

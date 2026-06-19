@@ -88,6 +88,17 @@ const PAGE_MEMBERS = (function() {
     const form = document.getElementById('memForm');
     const data = UTIL.formData(form);
     if (!data.first_name) { UI.toast('שם פרטי חובה', 'warning'); return; }
+    if (!UTIL.isValidPhone(data.phone)) {
+      UI.toast('מספר טלפון לא תקין', 'warning');
+      form.querySelector('[name=phone]').focus();
+      return;
+    }
+    data.phone = UTIL.normalizePhone(data.phone);
+    const dup = UTIL.findDuplicateMember(_allMembers, data.first_name, data.last_name);
+    if (dup) {
+      const ok = await UI.confirm('כבר קיים מתפלל בשם ' + data.first_name + ' ' + (data.last_name || '') + '. להוסיף בכל זאת?');
+      if (!ok) return;
+    }
     try {
       await API.write('addMember', data);
       UI.toast('נוסף', 'success');

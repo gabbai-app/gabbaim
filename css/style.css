@@ -255,6 +255,13 @@ mark { background: #fef08a; padding: 0 3px; border-radius: 3px; }
 
 /* Print friendly */
 @media print {
-  .navbar, .btn, footer, #toastContainer { display: none !important; }
-  .card { box-shadow: none; border: 1px solid #ccc; }
+  body { background: #fff !important; }
+  .navbar, .btn, footer, #toastContainer, #installBar, .no-print { display: none !important; }
+  .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+  .print-card { border: none !important; box-shadow: none !important; }
+  .print-header { border-bottom: 2px solid #000; padding-bottom: 8px; }
+  .stat-card, .day-banner { background: #fff !important; color: #000 !important; border: 1px solid #ddd; }
+  table { font-size: 11pt; }
+  h3, h4, h5 { color: #000 !important; }
+  @page { size: A4; margin: 1.5cm; }
 }

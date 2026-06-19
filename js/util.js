@@ -129,6 +129,26 @@ const UTIL = (function() {
     return data;
   }
 
+  function normalizePhone(s) {
+    if (!s) return '';
+    return String(s).replace(/[\s\-().]/g, '');
+  }
+
+  function isValidPhone(s) {
+    const n = normalizePhone(s);
+    if (!n) return true;       // empty is ok (not required)
+    return /^(\+?972|0)\d{8,9}$/.test(n);
+  }
+
+  function findDuplicateMember(members, first, last) {
+    if (!members || !first) return null;
+    const a = (first + '|' + (last || '')).trim().toLowerCase();
+    return members.find(function(m) {
+      const b = ((m.first_name || '') + '|' + (m.last_name || '')).trim().toLowerCase();
+      return a === b;
+    });
+  }
+
   return {
     escHtml: escHtml,
     escAttr: escAttr,
@@ -145,6 +165,9 @@ const UTIL = (function() {
     highlightSearch: highlightSearch,
     deepClone: deepClone,
     uuid: uuid,
-    formData: formData
+    formData: formData,
+    normalizePhone: normalizePhone,
+    isValidPhone: isValidPhone,
+    findDuplicateMember: findDuplicateMember
   };
 })();

@@ -404,6 +404,9 @@ const API = (function() {
   };
 
   function write(action, args) {
+    // Permission check — throws if not allowed
+    try { if (window.PERM && WRITE_ACTIONS[action]) PERM.require(action); }
+    catch (e) { return Promise.reject(e); }
     return read(action, args).then(function(result) {
       // Audit: record who did what
       try {
