@@ -57,11 +57,46 @@ const PAGE_SETTINGS = (function() {
     } else { html += UI.emptyState('אין גבאים'); }
     html += '</div></div>';
 
+    // Online sync (GitHub-as-DB)
+    const syncStatus = SYNC.getStatus();
+    const lastSync = syncStatus.lastSyncAt ? new Date(syncStatus.lastSyncAt).toLocaleString('he-IL') : 'מעולם';
+    const hasPat = !!SYNC.getPat();
+    const statusBadge = {
+      idle:    '<span class="badge bg-success">מסונכרן</span>',
+      syncing: '<span class="badge bg-info">מסנכרן…</span>',
+      offline: '<span class="badge bg-warning text-dark">אופליין</span>',
+      error:   '<span class="badge bg-danger">שגיאה: ' + UTIL.escHtml(syncStatus.error || '') + '</span>',
+      no_pat:  '<span class="badge bg-secondary">לא מסונכרן</span>'
+    }[syncStatus.status] || '<span class="badge bg-secondary">—</span>';
+
+    html += '<div class="card mb-3"><div class="card-header"><i class="bi bi-cloud-arrow-up"></i> סנכרון מקוון</div><div class="card-body">' +
+      '<p class="text-muted small mb-2">הנתונים מסונכרנים אוטומטית עם GitHub. כל גבאי מתחבר עם <b>טוקן GitHub אישי</b> שלו. אם אין טוקן — האפליקציה עובדת רק מקומית.</p>' +
+      '<div class="mb-2"><b>סטטוס:</b> ' + statusBadge + ' · <small class="text-muted">סנכרון אחרון: ' + lastSync + '</small></div>' +
+      '<label class="form-label">GitHub PAT (Personal Access Token)</label>' +
+      '<div class="input-group mb-2">' +
+      '<input type="password" class="form-control" id="patInput" placeholder="ghp_..." value="' + UTIL.escAttr(hasPat ? '••••••••••••••••' : '') + '" autocomplete="off">' +
+      '<button class="btn btn-primary" id="savePatBtn">שמור</button>' +
+      (hasPat ? '<button class="btn btn-outline-danger" id="clearPatBtn">מחק</button>' : '') +
+      '</div>' +
+      '<details><summary class="small text-muted">איך מייצרים PAT?</summary>' +
+      '<ol class="small text-muted mt-2">' +
+      '<li>היכנס ל-<a href="https://github.com/settings/tokens/new?description=Gabbai&scopes=repo" target="_blank">github.com/settings/tokens/new</a></li>' +
+      '<li>תיאור: "Gabbai". בחר scope: <code>repo</code>. תוקף: ללא הגבלה (או שנה).</li>' +
+      '<li>לחץ Generate. העתק את הטוקן <b>מיד</b> (נראה רק פעם אחת).</li>' +
+      '<li>חזור לכאן והדבק.</li>' +
+      '<li>וודא שיש לך הרשאות כתיבה ל-<code>' + SYNC.OWNER + '/' + SYNC.REPO + '</code></li>' +
+      '</ol></details>' +
+      '<div class="mt-3 d-flex flex-wrap gap-2">' +
+      '<button class="btn btn-primary" id="syncNowBtn" ' + (hasPat ? '' : 'disabled') + '><i class="bi bi-arrow-repeat"></i> סנכרן עכשיו</button>' +
+      '<button class="btn btn-outline-secondary" id="pullOnlyBtn"><i class="bi bi-cloud-download"></i> משוך מ-GitHub</button>' +
+      '</div>' +
+      '</div></div>';
+
     // Backup / Restore
-    html += '<div class="card mb-3"><div class="card-header"><i class="bi bi-cloud-arrow-down"></i> גיבוי והעברת נתונים</div><div class="card-body">' +
-      '<p class="text-muted small mb-3">הנתונים שמורים במכשיר הזה בלבד. כדי להעביר למכשיר אחר או לגבות — ייצא קובץ JSON, ובמכשיר השני ייבא אותו.</p>' +
+    html += '<div class="card mb-3"><div class="card-header"><i class="bi bi-cloud-arrow-down"></i> גיבוי קובץ (אופציונלי)</div><div class="card-body">' +
+      '<p class="text-muted small mb-3">בנוסף לסנכרון GitHub, אפשר לייצא/לייבא קובץ JSON ידנית.</p>' +
       '<div class="d-flex flex-wrap gap-2">' +
-      '<button class="btn btn-primary" id="exportBtn"><i class="bi bi-download"></i> ייצוא לקובץ</button>' +
+      '<button class="btn btn-outline-primary" id="exportBtn"><i class="bi bi-download"></i> ייצוא לקובץ</button>' +
       '<button class="btn btn-outline-primary" id="importBtn"><i class="bi bi-upload"></i> ייבוא מקובץ</button>' +
       '<button class="btn btn-outline-secondary" id="copyJsonBtn"><i class="bi bi-clipboard"></i> העתק JSON</button>' +
       '<input type="file" id="importFile" accept="application/json,.json" style="display:none">' +
@@ -97,6 +132,34 @@ const PAGE_SETTINGS = (function() {
     });
     document.getElementById('importFile')?.addEventListener('change', _importFile);
     document.getElementById('resetBtn')?.addEventListener('click', _resetAll);
+
+    document.getElementById('savePatBtn')?.addEventListener('click', async function() {
+      const v = document.getElementById('patInput').value.trim();
+      if (!v || v.indexOf('•') === 0) { UI.toast('הזן טוקן', 'warning'); return; }
+      SYNC.setPat(v);
+      UI.toast('טוקן נשמר. מסנכרן…', 'success');
+      const ok = await SYNC.syncNow();
+      if (ok) { UI.toast('סנכרון הצליח', 'success'); render(document.getElementById('app')); }
+      else { UI.toast('סנכרון נכשל — בדוק את הטוקן', 'danger'); }
+    });
+    document.getElementById('clearPatBtn')?.addEventListener('click', async function() {
+      const ok = await UI.confirm('למחוק את הטוקן? תפסיק להיות מסונכרן עם GitHub.');
+      if (!ok) return;
+      SYNC.setPat('');
+      UI.toast('טוקן נמחק', 'info');
+      render(document.getElementById('app'));
+    });
+    document.getElementById('syncNowBtn')?.addEventListener('click', async function() {
+      const ok = await SYNC.syncNow();
+      if (ok) UI.toast('סנכרון הצליח', 'success');
+      else UI.toast('סנכרון נכשל', 'danger');
+      render(document.getElementById('app'));
+    });
+    document.getElementById('pullOnlyBtn')?.addEventListener('click', async function() {
+      const res = await SYNC.pullOnly();
+      if (res.ok) { UI.toast('נמשך מ-GitHub', 'success'); render(document.getElementById('app')); }
+      else { UI.toast('שגיאה: ' + res.error, 'danger'); }
+    });
 
     document.querySelectorAll('[data-edit-syn]').forEach(function(b) {
       b.addEventListener('click', function() { _openEditSyn(b.dataset.editSyn); });

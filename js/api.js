@@ -394,7 +394,11 @@ const API = (function() {
   }
 
   function write(action, args) {
-    return read(action, args);
+    return read(action, args).then(function(result) {
+      // Fire-and-forget sync — runs in background, doesn't block UI
+      try { if (window.SYNC) SYNC.scheduleSync(); } catch (e) {}
+      return result;
+    });
   }
 
   function isOnline() { return true; }

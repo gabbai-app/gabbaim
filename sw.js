@@ -1,6 +1,6 @@
 // Service Worker — cache-first for all static assets so the app works fully offline.
 // Bump CACHE_NAME when assets change.
-const CACHE_NAME = 'gabbai-v1-1';
+const CACHE_NAME = 'gabbai-v1-2';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const STATIC_ASSETS = [
   './js/util.js',
   './js/calendar.js',
   './js/db.js',
+  './js/sync.js',
   './js/api.js',
   './js/state.js',
   './js/ui.js',
@@ -48,6 +49,10 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+  // Never cache GitHub API or raw data — these are live
+  if (url.hostname === 'api.github.com' || url.hostname === 'raw.githubusercontent.com') return;
+  // Don't cache the data file itself
+  if (url.pathname.indexOf('/data/db.json') >= 0) return;
   // For our own origin: cache-first
   if (url.origin === self.location.origin) {
     e.respondWith(

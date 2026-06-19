@@ -1,0 +1,15 @@
+{
+  "synagogues": [
+    {"id":"sg1","name":"בית כנסת מרכזי","address":"מעלה עמוס","nusach":"ספרד","notes":"","created_at":"2026-06-18T00:00:00.000Z","updated_at":"2026-06-18T00:00:00.000Z"},
+    {"id":"sg2","name":"בית כנסת שני","address":"מעלה עמוס","nusach":"אשכנז","notes":"","created_at":"2026-06-18T00:00:00.000Z","updated_at":"2026-06-18T00:00:00.000Z"}
+  ],
+  "members": [],
+  "gabbais": [
+    {"id":"g1","name":"יוסף שניידר","phone":"","pin_code":"1234","synagogue_id":"sg1","role":"super_admin","status":"active","created_at":"2026-06-18T00:00:00.000Z"}
+  ],
+  "events": [],
+  "aliyot": [],
+  "settings": {"default_synagogue":"sg1","app_version":"1.0"},
+  "audit": [],
+  "_meta": {"version": 1, "updated_at": "2026-06-18T00:00:00.000Z"}
+}
