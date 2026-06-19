@@ -20,7 +20,7 @@ const SYNC = (function() {
   const POLL_RECENT_WINDOW_MS = 90000;
 
   const OWNER = 'yossi6742853';
-  const REPO = 'gabbaim-maale-amos';
+  const REPO = 'gabbaim';
   const DATA_PATH = 'data/db.json';
   const BRANCH = 'main';
 
