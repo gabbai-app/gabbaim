@@ -245,6 +245,15 @@ mark { background: #fef08a; padding: 0 3px; border-radius: 3px; }
   .stat-card i { display: none; }
 }
 
+/* Zmanim bar inside day-banner */
+.zmanim-bar {
+  background: rgba(0,0,0,0.15);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.95rem;
+}
+.zmanim-bar i { opacity: 0.85; }
+
 /* Login card */
 .login-wrap { min-height: 70vh; }
 .login-card { max-width: 420px; width: 100%; border-radius: 1.25rem; }

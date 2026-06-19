@@ -36,6 +36,18 @@ const PAGE_PRINT = (function() {
       fast: 'תענית', purim: 'פורים', yom_tov: 'יום טוב', yom_kippur: 'יום הכיפורים'
     };
 
+    let zmanimLine = '';
+    try {
+      const t = CAL.shabbatTimes(info.date);
+      if (t.candleLighting || t.havdalah) {
+        zmanimLine = '<div class="text-center mt-2 small">' +
+          (t.candleLighting ? '<b>הדלקת נרות:</b> ' + UTIL.escHtml(t.candleLighting) + '   ' : '') +
+          (t.havdalah ? '<b>צאת השבת:</b> ' + UTIL.escHtml(t.havdalah) : '') +
+          '   <span class="text-muted">(' + UTIL.escHtml(CAL.MAALE_AMOS.name) + ')</span>' +
+          '</div>';
+      }
+    } catch (e) {}
+
     let html =
       '<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 no-print">' +
       '<h3 class="mb-0"><i class="bi bi-printer"></i> הדפסת סידור</h3>' +
@@ -54,6 +66,7 @@ const PAGE_PRINT = (function() {
       '<div class="fs-5">' + UTIL.escHtml(info.hebrew.display) + '</div>' +
       '<div class="text-muted">' + UTIL.fmtDate(info.date) + ' · ' + UTIL.escHtml(info.day_of_week_name) + '</div>' +
       (info.is_special_shabbat ? '<div class="mt-1"><b>' + UTIL.escHtml(info.special_shabbat_name) + '</b></div>' : '') +
+      zmanimLine +
       '</div>';
 
     if (events.length) {
@@ -99,7 +112,14 @@ const PAGE_PRINT = (function() {
 
     let txt = '*' + (syn.name || '') + '*\n';
     txt += (info.parsha ? 'פרשת ' + info.parsha : info.day_of_week_name) + ' · ' + info.hebrew.display + '\n';
-    txt += UTIL.fmtDate(info.date) + '\n\n';
+    txt += UTIL.fmtDate(info.date) + '\n';
+    try {
+      const t = CAL.shabbatTimes(info.date);
+      if (t.candleLighting) txt += 'הדלקת נרות: ' + t.candleLighting + '   ';
+      if (t.havdalah) txt += 'צאת השבת: ' + t.havdalah;
+      if (t.candleLighting || t.havdalah) txt += '\n';
+    } catch (e) {}
+    txt += '\n';
     if (events.length) {
       txt += '*חיובים:*\n';
       events.forEach(function(e) {

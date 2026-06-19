@@ -22,6 +22,19 @@ const PAGE_DASHBOARD = (function() {
     const absent = d.long_absent_top || [];
     const recent = d.recent_aliyot || [];
 
+    // Shabbat zmanim
+    let zmanim = '';
+    try {
+      const t = CAL.shabbatTimes(hb.date);
+      if (t.candleLighting || t.havdalah) {
+        zmanim = '<div class="zmanim-bar mt-2 d-flex gap-3 flex-wrap">' +
+          (t.candleLighting ? '<span><i class="bi bi-fire"></i> הדלקת נרות: <b>' + UTIL.escHtml(t.candleLighting) + '</b></span>' : '') +
+          (t.havdalah ? '<span><i class="bi bi-stars"></i> צאת השבת: <b>' + UTIL.escHtml(t.havdalah) + '</b></span>' : '') +
+          '<span class="text-white-50 small">· ' + UTIL.escHtml(CAL.MAALE_AMOS.name) + '</span>' +
+          '</div>';
+      }
+    } catch (e) {}
+
     let html = '';
     html += '<div class="day-banner">';
     html += '<div class="d-flex align-items-center justify-content-between flex-wrap gap-3">';
@@ -29,6 +42,7 @@ const PAGE_DASHBOARD = (function() {
     html += '<div class="parsha-name">פרשת ' + UTIL.escHtml(hb.parsha || '—') + '</div>';
     html += '<div class="hebrew-date">' + UTIL.escHtml(hb.hebrew.display) + '</div>';
     html += '<div class="greg-date">' + UTIL.fmtDate(hb.date) + ' · ' + UTIL.escHtml(hb.day_of_week_name) + ' · ' + UTIL.escHtml(hb.aliyot_count) + ' עליות</div>';
+    html += zmanim;
     html += '</div>';
     html += '<a href="#/live" class="btn btn-light btn-lg fw-bold"><i class="bi bi-lightning-fill"></i> פתח מצב חי</a>';
     html += '</div></div>';

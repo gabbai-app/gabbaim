@@ -78,6 +78,19 @@ const PAGE_LIVE = (function() {
     if (info.two_torahs) chips += '<span class="badge bg-secondary me-1">2 ספרי תורה</span>';
     if (info.is_yom_tov) chips += '<span class="badge bg-success me-1">יום טוב</span>';
 
+    // Zmanim for shabbat/yom-tov
+    let zmanim = '';
+    if (info.is_shabbat || info.is_yom_tov) {
+      const t = CAL.shabbatTimes(info.date);
+      if (t.candleLighting || t.havdalah) {
+        zmanim = '<div class="zmanim-bar mt-2 d-flex gap-3 flex-wrap">' +
+          (t.candleLighting ? '<span><i class="bi bi-fire"></i> הדלקת נרות: <b>' + UTIL.escHtml(t.candleLighting) + '</b></span>' : '') +
+          (t.havdalah ? '<span><i class="bi bi-stars"></i> צאת השבת: <b>' + UTIL.escHtml(t.havdalah) + '</b></span>' : '') +
+          '<span class="text-white-50 small">· ' + UTIL.escHtml(CAL.MAALE_AMOS.name) + '</span>' +
+          '</div>';
+      }
+    }
+
     return '<div class="day-banner">' +
       '<div class="parsha-name"><i class="bi bi-lightning-fill"></i> ' +
       (info.parsha ? 'פרשת ' + UTIL.escHtml(info.parsha) : UTIL.escHtml(dayLabel)) +
@@ -86,6 +99,7 @@ const PAGE_LIVE = (function() {
       '<div class="greg-date">' + UTIL.fmtDate(info.date) + ' · ' + UTIL.escHtml(info.day_of_week_name) +
         ' · ' + UTIL.escHtml(dayLabel) + ' · ' + UTIL.escHtml(info.aliyot_count) + ' עליות</div>' +
       (chips ? '<div class="mt-2">' + chips + '</div>' : '') +
+      zmanim +
       '</div>';
   }
 

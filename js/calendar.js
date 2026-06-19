@@ -4,6 +4,29 @@
 
 const CAL = (function() {
 
+  // Maale Amos — Gush Etzion area. Coordinates approximate but accurate enough
+  // for halachic times (within ~30 seconds for an entire town).
+  const MAALE_AMOS = {
+    latitude: 31.5926,
+    longitude: 35.1437,
+    timezone: 'Asia/Jerusalem',
+    elevation: 760,
+    name: 'מעלה עמוס',
+    countryCode: 'IL'
+  };
+
+  let _cachedLocation = null;
+  function _location() {
+    if (_cachedLocation) return _cachedLocation;
+    const h = _hebcal();
+    _cachedLocation = new h.Location(
+      MAALE_AMOS.latitude, MAALE_AMOS.longitude, true,
+      MAALE_AMOS.timezone, MAALE_AMOS.name, MAALE_AMOS.countryCode
+    );
+    if (_cachedLocation.elev !== undefined) _cachedLocation.elev = MAALE_AMOS.elevation;
+    return _cachedLocation;
+  }
+
   function _hebcal() {
     if (!window.hebcal) throw new Error('hebcal לא נטען — בדוק חיבור לאינטרנט');
     return window.hebcal;
@@ -32,6 +55,62 @@ const CAL = (function() {
       shabbatMevarchim: true,
       candlelighting: false
     });
+  }
+
+  // Shabbat / Yom Tov times for Maale Amos.
+  // For a Saturday: returns {candleLighting: 'HH:MM' (Friday eve), havdalah: 'HH:MM'}.
+  // For other dates: nearest applicable (e.g., a weekday returns null).
+  function shabbatTimes(input) {
+    try {
+      const h = _hebcal();
+      const date = _toDate(input);
+      // We want the candle lighting on the eve and havdalah after.
+      // Easiest: query a 2-day window centered on the date.
+      const start = new Date(date); start.setDate(start.getDate() - 1);
+      const end = new Date(date); end.setDate(end.getDate() + 1);
+      const evs = h.HebrewCalendar.calendar({
+        start: start, end: end,
+        candlelighting: true,
+        location: _location(),
+        il: true,
+        havdalahMins: 0,                // use astronomical (3 small stars)
+        noHolidays: false,
+        sedrot: false
+      });
+      let candleLighting = null, havdalah = null;
+      evs.forEach(function(ev) {
+        const fl = ev.getFlags();
+        const F = h.flags;
+        const evDate = ev.getDate().greg();
+        const isAfterOrSameDay = evDate.toISOString().substring(0, 10) >= date.toISOString().substring(0, 10);
+        if (fl & F.LIGHT_CANDLES) {
+          // The candle-lighting event before Shabbat is on Friday before
+          if (!candleLighting) candleLighting = _formatTime(ev);
+        }
+        if (fl & F.LIGHT_CANDLES_TZEIS) {
+          if (!candleLighting) candleLighting = _formatTime(ev);
+        }
+        if (fl & F.YOM_TOV_ENDS) {
+          if (isAfterOrSameDay && !havdalah) havdalah = _formatTime(ev);
+        }
+      });
+      return { candleLighting: candleLighting, havdalah: havdalah, location: MAALE_AMOS.name };
+    } catch (e) {
+      return { candleLighting: null, havdalah: null, error: e.message };
+    }
+  }
+
+  function _formatTime(ev) {
+    try {
+      // hebcal events have a render method that includes time; we want only HH:MM
+      const dt = ev.eventTime || (ev.eventTimeStr ? new Date(ev.eventTimeStr) : null);
+      if (dt instanceof Date) {
+        return dt.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Jerusalem' });
+      }
+      const txt = ev.render('he') || ev.render() || '';
+      const m = txt.match(/(\d{1,2}:\d{2})/);
+      return m ? m[1] : '';
+    } catch (e) { return ''; }
   }
 
   function gregorianToHebrew(input) {
@@ -257,6 +336,8 @@ const CAL = (function() {
     dayInfo: dayInfo,
     thisWeekShabbat: thisWeekShabbat,
     nextShabbat: nextShabbat,
-    upcomingHolidays: upcomingHolidays
+    upcomingHolidays: upcomingHolidays,
+    shabbatTimes: shabbatTimes,
+    MAALE_AMOS: MAALE_AMOS
   };
 })();
