@@ -1,158 +1,85 @@
-// Hebrew calendar engine — pure client-side
-// Converts Gregorian↔Hebrew, computes day type, aliyot count, parsha (approx), yahrzeit next anniversary
+// Hebrew calendar — wrapper around @hebcal/core (loaded via CDN as window.hebcal)
+// Provides accurate parsha (incl. combined parshas), holidays, special shabbats,
+// rosh chodesh, chol hamoed, fast days etc.
 
 const CAL = (function() {
 
-  function isLeap(y) { return ((y * 7 + 1) % 19) < 7; }
-  function yearMonths(y) { return isLeap(y) ? 13 : 12; }
-
-  function monthsElapsed(y) { return Math.floor((235 * y - 234) / 19); }
-
-  function delay1(y) {
-    const m = monthsElapsed(y);
-    const parts = 12084 + 13753 * m;
-    let day = m * 29 + Math.floor(parts / 25920);
-    if (((3 * (day + 1)) % 7) < 3) day++;
-    return day;
+  function _hebcal() {
+    if (!window.hebcal) throw new Error('hebcal לא נטען — בדוק חיבור לאינטרנט');
+    return window.hebcal;
   }
 
-  function delay2(y) {
-    const last = delay1(y - 1);
-    const present = delay1(y);
-    const next = delay1(y + 1);
-    if (next - present === 356) return 2;
-    if (present - last === 382) return 1;
-    return 0;
+  function _toIso(d) {
+    if (typeof d === 'string') return d.substring(0, 10);
+    const dt = d instanceof Date ? d : new Date(d);
+    return dt.toISOString().substring(0, 10);
   }
 
-  function days1Tishri(y) { return delay1(y) + delay2(y); }
-  function yearDays(y) { return days1Tishri(y + 1) - days1Tishri(y); }
-
-  function monthDays(y, m) {
-    if (m === 2 || m === 4 || m === 6 || m === 10 || m === 13) return 29;
-    if (m === 12 && !isLeap(y)) return 29;
-    if (m === 12 && isLeap(y)) return 30;
-    if (m === 8) { const d = yearDays(y); return (d === 355 || d === 385) ? 30 : 29; }
-    if (m === 9) { const d = yearDays(y); return (d === 353 || d === 383) ? 29 : 30; }
-    return 30;
+  function _toDate(input) {
+    if (input instanceof Date) return new Date(input);
+    if (!input) return new Date();
+    return new Date(input);
   }
 
-  function hebToAbs(y, m, d) {
-    let days = d;
-    if (m < 7) {
-      for (let i = 7; i <= yearMonths(y); i++) days += monthDays(y, i);
-      for (let j = 1; j < m; j++) days += monthDays(y, j);
-    } else {
-      for (let k = 7; k < m; k++) days += monthDays(y, k);
-    }
-    return days + days1Tishri(y);
+  function _eventsForDate(d) {
+    const h = _hebcal();
+    return h.HebrewCalendar.calendar({
+      start: d,
+      end: d,
+      sedrot: true,
+      noHolidays: false,
+      il: true,         // Israel calendar
+      shabbatMevarchim: true,
+      candlelighting: false
+    });
   }
 
-  function daysInGreg(y, m) {
-    if (m === 2) return ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 29 : 28;
-    return [31,28,31,30,31,30,31,31,30,31,30,31][m-1];
-  }
-
-  function gregToAbs(y, m, d) {
-    let days = d;
-    for (let i = 1; i < m; i++) days += daysInGreg(y, i);
-    return days + 365 * (y - 1) + Math.floor((y - 1) / 4) - Math.floor((y - 1) / 100) + Math.floor((y - 1) / 400);
-  }
-
-  function absToGreg(abs) {
-    let y = Math.floor(abs / 366);
-    while (gregToAbs(y + 1, 1, 1) <= abs) y++;
-    let m = 1;
-    while (m <= 12 && gregToAbs(y, m, daysInGreg(y, m)) < abs) m++;
-    const d = abs - gregToAbs(y, m, 1) + 1;
-    return { year: y, month: m, day: d };
-  }
-
-  function absToHeb(abs) {
-    let y = Math.floor((abs + 1373429) / 366);
-    while (hebToAbs(y + 1, 7, 1) <= abs) y++;
-    let startMonth = abs < hebToAbs(y, 1, 1) ? 7 : 1;
-    let m = startMonth;
-    while (m <= yearMonths(y) && hebToAbs(y, m, monthDays(y, m)) < abs) m++;
-    const d = abs - hebToAbs(y, m, 1) + 1;
-    return { year: y, month: m, day: d };
-  }
-
-  function monthName(year, m) {
-    const leap = isLeap(year);
-    const map = ['', 'ניסן', 'אייר', 'סיון', 'תמוז', 'אב', 'אלול', 'תשרי', 'חשוון', 'כסלו', 'טבת', 'שבט', 'אדר', 'אדר_ב'];
-    if (m === 12 && leap) return 'אדר_א';
-    if (m === 13 && leap) return 'אדר_ב';
-    return map[m] || '';
-  }
-
-  function monthNum(year, name) {
-    const leap = isLeap(year);
-    const idx = {
-      'ניסן': 1, 'אייר': 2, 'סיון': 3, 'סיוון': 3, 'תמוז': 4, 'אב': 5, 'אלול': 6,
-      'תשרי': 7, 'חשוון': 8, 'מרחשוון': 8, 'כסלו': 9, 'טבת': 10, 'שבט': 11
-    };
-    if (idx[name]) return idx[name];
-    if (name === 'אדר' || name === 'אדר_ב' || name === 'אדר ב' || name === 'אדר ב׳') return leap ? 13 : 12;
-    if (name === 'אדר_א' || name === 'אדר א' || name === 'אדר א׳') return leap ? 12 : 12;
-    return 0;
-  }
-
-  function yearGematria(y) {
-    const mod = y % 1000;
-    const thousand = Math.floor(y / 1000);
-    const letters = ['','א','ב','ג','ד','ה','ו','ז','ח','ט'];
-    const hundreds = Math.floor(mod / 100);
-    const tens = Math.floor((mod % 100) / 10);
-    const ones = mod % 10;
-    const hMap = ['','ק','ר','ש','ת','תק','תר','תש','תת','תתק'];
-    const tMap = ['','י','כ','ל','מ','נ','ס','ע','פ','צ'];
-    const oMap = ['','א','ב','ג','ד','ה','ו','ז','ח','ט'];
-    let rest = (hMap[hundreds] || '') + (tMap[tens] || '') + (oMap[ones] || '');
-    if (tens === 1 && ones === 5) rest = (hMap[hundreds] || '') + 'טו';
-    if (tens === 1 && ones === 6) rest = (hMap[hundreds] || '') + 'טז';
-    if (rest.length >= 2) rest = rest.substring(0, rest.length - 1) + '"' + rest.substring(rest.length - 1);
-    return rest;
-  }
-
-  function pad(n) { return n < 10 ? '0' + n : '' + n; }
-
-  function gregorianToHebrew(dateOrISO) {
-    const d = dateOrISO instanceof Date ? dateOrISO : new Date(dateOrISO);
-    const abs = gregToAbs(d.getFullYear(), d.getMonth() + 1, d.getDate());
-    const heb = absToHeb(abs);
+  function gregorianToHebrew(input) {
+    const h = _hebcal();
+    const d = _toDate(input);
+    const hd = new h.HDate(d);
     return {
-      year: heb.year,
-      month_num: heb.month,
-      month_name: monthName(heb.year, heb.month),
-      day: heb.day,
-      display: heb.day + ' ב' + monthName(heb.year, heb.month).replace('_', ' ') + ' ' + yearGematria(heb.year)
+      year: hd.getFullYear(),
+      month_num: hd.getMonth(),
+      month_name: hd.getMonthName(),
+      day: hd.getDate(),
+      display: hd.renderGematriya(true) // e.g. "ז' תמוז תשפ"ו"
     };
   }
 
   function hebrewToGregorian(args) {
+    const h = _hebcal();
     const year = args.year || currentHebrewYear();
-    const m = monthNum(year, args.month);
-    if (!m) return null;
-    const abs = hebToAbs(year, m, args.day);
-    const g = absToGreg(abs);
-    return g.year + '-' + pad(g.month) + '-' + pad(g.day);
+    const monthName = String(args.month || '').replace('_', ' ').trim();
+    // Map Hebrew month name to hebcal month number
+    let monthNum;
+    try {
+      monthNum = h.HDate.monthFromName(monthName);
+    } catch (e) {
+      const map = {
+        'ניסן': 1, 'אייר': 2, 'סיון': 3, 'סיוון': 3, 'תמוז': 4, 'אב': 5, 'אלול': 6,
+        'תשרי': 7, 'חשוון': 8, 'מרחשוון': 8, 'כסלו': 9, 'טבת': 10, 'שבט': 11,
+        'אדר': 12, 'אדר א': 12, 'אדר ב': 13, "אדר א'": 12, "אדר ב'": 13
+      };
+      monthNum = map[monthName];
+    }
+    if (!monthNum) return null;
+    try {
+      const hd = new h.HDate(parseInt(args.day), monthNum, year);
+      const g = hd.greg();
+      return g.toISOString().substring(0, 10);
+    } catch (e) { return null; }
   }
 
   function nextHebrewAnniversary(args, fromDate) {
     const from = fromDate || new Date();
     for (let i = 0; i < 3; i++) {
       const y = currentHebrewYear(from) + i;
-      const m = monthNum(y, args.month);
-      if (!m) continue;
-      const abs = hebToAbs(y, m, args.day);
-      const g = absToGreg(abs);
-      const gd = new Date(g.year, g.month - 1, g.day);
+      const greg = hebrewToGregorian({ day: args.day, month: args.month, year: y });
+      if (!greg) continue;
+      const gd = new Date(greg);
       if (gd >= from) {
-        return {
-          hebrew_year: y,
-          gregorian: g.year + '-' + pad(g.month) + '-' + pad(g.day)
-        };
+        return { hebrew_year: y, gregorian: greg };
       }
     }
     return null;
@@ -160,97 +87,166 @@ const CAL = (function() {
 
   function currentHebrewYear(d) {
     d = d || new Date();
-    return gregorianToHebrew(d).year;
+    return new (_hebcal()).HDate(d).getFullYear();
   }
 
-  const PARSHIOT = [
-    'בראשית','נח','לך לך','וירא','חיי שרה','תולדות','ויצא','וישלח','וישב','מקץ','ויגש','ויחי',
-    'שמות','וארא','בא','בשלח','יתרו','משפטים','תרומה','תצוה','כי תשא','ויקהל','פקודי',
-    'ויקרא','צו','שמיני','תזריע','מצורע','אחרי מות','קדושים','אמור','בהר','בחקתי',
-    'במדבר','נשא','בהעלותך','שלח','קרח','חקת','בלק','פינחס','מטות','מסעי',
-    'דברים','ואתחנן','עקב','ראה','שופטים','כי תצא','כי תבוא','נצבים','וילך','האזינו','וזאת הברכה'
-  ];
+  function _categorizeDay(date) {
+    const h = _hebcal();
+    const events = _eventsForDate(date);
+    const F = h.flags;
 
-  function approxParsha(d, heb) {
-    try {
-      const stAbs = hebToAbs(heb.year, 7, 23);
-      const curAbs = gregToAbs(d.getFullYear(), d.getMonth() + 1, d.getDate());
-      let weeksSince = Math.floor((curAbs - stAbs) / 7);
-      if (weeksSince < 0) weeksSince = PARSHIOT.length + weeksSince;
-      return PARSHIOT[weeksSince % PARSHIOT.length] || '';
-    } catch (e) { return ''; }
+    const out = {
+      parsha: '',
+      parsha_he: '',
+      holidays: [],         // string array of Hebrew holiday names
+      is_shabbat: date.getDay() === 6,
+      is_rosh_chodesh: false,
+      is_chol_hamoed: false,
+      is_yom_tov: false,
+      is_yom_kippur: false,
+      is_chanukah: false,
+      is_purim: false,
+      is_fast: false,
+      is_special_shabbat: false,
+      special_shabbat_name: ''
+    };
+
+    events.forEach(function(ev) {
+      const fl = ev.getFlags();
+      const desc = ev.getDesc();
+      const he = ev.render('he') || '';
+      const heNoNikkud = he.replace(/[֑-ׇ]/g, '');
+
+      if (fl & F.PARSHA_HASHAVUA) {
+        out.parsha = ev.basename().replace('Parashat ', '');
+        out.parsha_he = heNoNikkud.replace('פרשת ', '');
+      }
+      if (fl & F.ROSH_CHODESH) out.is_rosh_chodesh = true;
+      if (fl & F.CHOL_HAMOED) out.is_chol_hamoed = true;
+      if (fl & F.CHAG) out.is_yom_tov = true;
+      if (fl & F.YOM_KIPPUR) out.is_yom_kippur = true;
+      if (fl & F.CHANUKAH_CANDLES) out.is_chanukah = true;
+      if (fl & (F.MAJOR_FAST | F.MINOR_FAST)) out.is_fast = true;
+      if (fl & F.SPECIAL_SHABBAT) {
+        out.is_special_shabbat = true;
+        out.special_shabbat_name = heNoNikkud;
+      }
+      if (heNoNikkud && heNoNikkud.indexOf('פורים') >= 0) out.is_purim = true;
+      if (he && !(fl & F.PARSHA_HASHAVUA)) out.holidays.push(heNoNikkud);
+    });
+
+    return out;
   }
 
-  function dayInfo(dateInput) {
-    const d = dateInput instanceof Date ? new Date(dateInput) : new Date(dateInput || new Date());
-    const heb = gregorianToHebrew(d);
-    const dow = d.getDay();
-    let type = 'weekday';
-    let count = 0;
-    let names = [];
+  // Determine day type + aliyot count + parsha + special context
+  function dayInfo(input) {
+    const date = _toDate(input);
+    const heb = gregorianToHebrew(date);
+    const dow = date.getDay();
+    const ctx = _categorizeDay(date);
 
-    if (dow === 6) {
-      type = 'shabbat';
-      count = 8;
-      names = ['כהן','לוי','שלישי','רביעי','חמישי','שישי','שביעי','מפטיר'];
+    let type = 'weekday_no_torah';
+    let aliyot_count = 0;
+    let aliyot_names = [];
+    let two_torahs = false;
+
+    if (ctx.is_yom_kippur) {
+      type = 'yom_kippur';
+      aliyot_count = 7;
+      aliyot_names = ['כהן', 'לוי', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'מפטיר'];
+      two_torahs = true;
+    } else if (ctx.is_yom_tov) {
+      type = 'yom_tov';
+      aliyot_count = 6;
+      aliyot_names = ['כהן', 'לוי', 'שלישי', 'רביעי', 'חמישי', 'מפטיר'];
+      two_torahs = true;
+    } else if (ctx.is_shabbat) {
+      type = ctx.is_special_shabbat ? 'shabbat_special' : 'shabbat';
+      aliyot_count = 8;
+      aliyot_names = ['כהן', 'לוי', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שביעי', 'מפטיר'];
+      if (ctx.is_rosh_chodesh || ctx.special_shabbat_name.indexOf('שקלים') >= 0 ||
+          ctx.special_shabbat_name.indexOf('זכור') >= 0 || ctx.special_shabbat_name.indexOf('פרה') >= 0 ||
+          ctx.special_shabbat_name.indexOf('החודש') >= 0) {
+        two_torahs = true;
+      }
+    } else if (ctx.is_chol_hamoed) {
+      type = 'chol_hamoed';
+      aliyot_count = 4;
+      aliyot_names = ['כהן', 'לוי', 'שלישי', 'רביעי'];
+    } else if (ctx.is_rosh_chodesh) {
+      type = 'rosh_chodesh';
+      aliyot_count = 4;
+      aliyot_names = ['כהן', 'לוי', 'שלישי', 'רביעי'];
+    } else if (ctx.is_chanukah) {
+      type = 'chanukah';
+      aliyot_count = 3;
+      aliyot_names = ['כהן', 'לוי', 'שלישי'];
+    } else if (ctx.is_fast) {
+      type = 'fast';
+      aliyot_count = 3;
+      aliyot_names = ['כהן', 'לוי', 'שלישי'];
+    } else if (ctx.is_purim) {
+      type = 'purim';
+      aliyot_count = 3;
+      aliyot_names = ['כהן', 'לוי', 'שלישי'];
     } else if (dow === 1 || dow === 4) {
       type = 'sheni_chamishi';
-      count = 3;
-      names = ['כהן','לוי','שלישי'];
-    }
-
-    if ((heb.day === 1) || (heb.day === 30 && monthDays(heb.year, heb.month_num) === 30)) {
-      if (dow !== 6) {
-        type = 'rosh_chodesh';
-        count = 4;
-        names = ['כהן','לוי','שלישי','רביעי'];
-      }
-    }
-
-    if ((heb.month_name === 'כסלו' && heb.day >= 25) || (heb.month_name === 'טבת' && heb.day <= 3)) {
-      if (dow !== 6) {
-        type = 'chanukah';
-        count = 3;
-        names = ['כהן','לוי','שלישי'];
-      }
-    }
-
-    if (heb.month_name === 'תשרי' && heb.day === 10) {
-      type = 'yom_kippur';
-      count = 7;
-      names = ['כהן','לוי','שלישי','רביעי','חמישי','שישי','מפטיר'];
-    }
-
-    if ((heb.month_name === 'תשרי' && heb.day >= 17 && heb.day <= 20) ||
-        (heb.month_name === 'ניסן' && heb.day >= 17 && heb.day <= 20)) {
-      if (dow !== 6) {
-        type = 'chol_hamoed';
-        count = 4;
-        names = ['כהן','לוי','שלישי','רביעי'];
-      }
+      aliyot_count = 3;
+      aliyot_names = ['כהן', 'לוי', 'שלישי'];
     }
 
     return {
-      date: d.toISOString().substring(0, 10),
+      date: _toIso(date),
       hebrew: heb,
       day_of_week: dow,
-      day_of_week_name: ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'][dow],
+      day_of_week_name: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'][dow],
       type: type,
-      aliyot_count: count,
-      aliyot_names: names,
-      parsha: approxParsha(d, heb)
+      aliyot_count: aliyot_count,
+      aliyot_names: aliyot_names,
+      parsha: ctx.parsha_he || ctx.parsha,
+      holidays: ctx.holidays,
+      is_special_shabbat: ctx.is_special_shabbat,
+      special_shabbat_name: ctx.special_shabbat_name,
+      is_rosh_chodesh: ctx.is_rosh_chodesh,
+      is_chol_hamoed: ctx.is_chol_hamoed,
+      is_yom_tov: ctx.is_yom_tov,
+      is_yom_kippur: ctx.is_yom_kippur,
+      is_chanukah: ctx.is_chanukah,
+      is_fast: ctx.is_fast,
+      is_purim: ctx.is_purim,
+      two_torahs: two_torahs
     };
   }
 
   function nextShabbat(from) {
-    const d = from instanceof Date ? new Date(from) : new Date(from || new Date());
+    const d = _toDate(from);
     while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
     return d;
   }
 
   function thisWeekShabbat(arg) {
-    const d = nextShabbat(arg && arg.date ? arg.date : new Date());
-    return dayInfo(d);
+    const start = (arg && arg.date) ? _toDate(arg.date) : new Date();
+    return dayInfo(nextShabbat(start));
+  }
+
+  // Holidays/events for a date range (used for the "important days ahead" panel)
+  function upcomingHolidays(args) {
+    const h = _hebcal();
+    const start = args.start ? _toDate(args.start) : new Date();
+    const end = args.end ? _toDate(args.end) : new Date(start.getTime() + 30 * 86400000);
+    const evs = h.HebrewCalendar.calendar({
+      start: start, end: end,
+      sedrot: false, noHolidays: false,
+      il: true
+    });
+    return evs.map(function(ev) {
+      return {
+        date: ev.getDate().greg().toISOString().substring(0, 10),
+        he: (ev.render('he') || '').replace(/[֑-ׇ]/g, ''),
+        en: ev.basename(),
+        flags: ev.getFlags()
+      };
+    });
   }
 
   return {
@@ -261,10 +257,6 @@ const CAL = (function() {
     dayInfo: dayInfo,
     thisWeekShabbat: thisWeekShabbat,
     nextShabbat: nextShabbat,
-    monthName: monthName,
-    monthNum: monthNum,
-    isLeap: isLeap,
-    yearGematria: yearGematria,
-    HEB_MONTHS: ['ניסן','אייר','סיון','תמוז','אב','אלול','תשרי','חשוון','כסלו','טבת','שבט','אדר','אדר_א','אדר_ב']
+    upcomingHolidays: upcomingHolidays
   };
 })();

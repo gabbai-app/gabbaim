@@ -1,6 +1,6 @@
 // Service Worker — cache-first for all static assets so the app works fully offline.
 // Bump CACHE_NAME when assets change.
-const CACHE_NAME = 'gabbai-v1-2';
+const CACHE_NAME = 'gabbai-v1-3';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
   './js/config.js',
   './js/util.js',
   './js/calendar.js',
+  './js/kavodot.js',
   './js/db.js',
   './js/sync.js',
   './js/api.js',
