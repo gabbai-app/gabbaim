@@ -34,8 +34,8 @@ const PAGE_LOGIN = (function() {
         return '<option value="' + UTIL.escAttr(g.id) + '">' + UTIL.escHtml(g.name) + '</option>';
       }).join('') +
       '</select></div>' +
-      '<div class="mb-3"><label class="form-label">קוד אישי (4 ספרות)</label>' +
-      '<input class="form-control form-control-lg text-center fw-bold" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" name="pin" placeholder="••••" required autocomplete="off" style="letter-spacing:0.5em;font-size:1.6rem;"></div>' +
+      '<div class="mb-3"><label class="form-label">סיסמה / קוד אישי</label>' +
+      '<input class="form-control form-control-lg" type="password" name="pin" placeholder="הזן סיסמה" required autocomplete="current-password"></div>' +
       '<button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-box-arrow-in-left"></i> כניסה</button>' +
       '</form>';
   }
@@ -49,17 +49,26 @@ const PAGE_LOGIN = (function() {
 
     const form = document.getElementById('loginForm');
     if (!form) return;
-    form.addEventListener('submit', function(ev) {
+    form.addEventListener('submit', async function(ev) {
       ev.preventDefault();
       const data = UTIL.formData(form);
-      const result = AUTH.login(data.gabbai_id, String(data.pin || '').trim());
-      if (!result.ok) {
-        UI.toast(result.error, 'danger');
-        form.querySelector('[name=pin]').focus();
-        return;
+      const btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> בודק…';
+      try {
+        const result = await AUTH.login(data.gabbai_id, String(data.pin || '').trim());
+        if (!result.ok) {
+          UI.toast(result.error, 'danger');
+          form.querySelector('[name=pin]').focus();
+          form.querySelector('[name=pin]').value = '';
+          return;
+        }
+        UI.toast('שלום ' + result.session.name + '!', 'success');
+        ROUTER.navigate('/');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-box-arrow-in-left"></i> כניסה';
       }
-      UI.toast('שלום ' + result.session.name + '!', 'success');
-      ROUTER.navigate('/');
     });
 
     // Autofocus PIN once gabbai chosen

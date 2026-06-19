@@ -121,6 +121,7 @@ const UI = (function() {
     const role = PERM.roleLabel(g.role);
     let extraItems = '';
     if (PERM.can('page:audit')) {
+      extraItems += '<li><a class="dropdown-item" href="#/users"><i class="bi bi-shield-check"></i> ניהול משתמשים</a></li>';
       extraItems += '<li><a class="dropdown-item" href="#/audit"><i class="bi bi-shield-lock"></i> יומן פעילות</a></li>';
     }
     wrap.innerHTML =

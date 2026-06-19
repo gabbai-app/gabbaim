@@ -13,6 +13,7 @@ const ROUTER = (function() {
     '/reports':   { perm: 'page:reports',     handler: function(p, el) { PAGE_REPORTS.render(el);              UI.setActiveNav('reports');   STATE.set('page', 'reports'); } },
     '/print':     { perm: 'page:print',       handler: function(p, el) { PAGE_PRINT.render(el, p[0]);          UI.setActiveNav('live');      STATE.set('page', 'print'); } },
     '/audit':     { perm: 'page:audit',       handler: function(p, el) { PAGE_AUDIT.render(el);                UI.setActiveNav('');          STATE.set('page', 'audit'); } },
+    '/users':     { perm: 'page:audit',       handler: function(p, el) { PAGE_USERS.render(el);                UI.setActiveNav('');          STATE.set('page', 'users'); } },
     '/settings':  { perm: 'page:settings',    handler: function(p, el) { PAGE_SETTINGS.render(el);             UI.setActiveNav('settings');  STATE.set('page', 'settings'); } },
     '/login':     { perm: null,               handler: function(p, el) { PAGE_LOGIN.render(el);                UI.setActiveNav('');          STATE.set('page', 'login'); } }
   };

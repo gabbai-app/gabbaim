@@ -1,9 +1,37 @@
-// Authentication — gabbai login by name + PIN
+// Authentication — gabbai login by name + password/PIN
 // Session stored in localStorage; per device. No expiry by default.
+// Passwords are stored as SHA-256 of (salt + ':' + password). Legacy PIN
+// (pin_code) still works for accounts that haven't migrated.
 
 const AUTH = (function() {
   const KEY = 'gabbai_session_v1';
+  const SALT = 'gabbaim_maale_amos_2026';
+  const HASH_PREFIX = 'sha256:';
   const _listeners = [];
+
+  async function hashPassword(pw) {
+    if (!pw) return '';
+    if (!('crypto' in window) || !window.crypto.subtle) {
+      // Fallback (insecure) — only happens on ancient browsers
+      return 'plain:' + String(pw);
+    }
+    const buf = new TextEncoder().encode(SALT + ':' + pw);
+    const digest = await crypto.subtle.digest('SHA-256', buf);
+    const hex = Array.from(new Uint8Array(digest))
+      .map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    return HASH_PREFIX + hex;
+  }
+
+  async function verifyPassword(stored, attempt) {
+    if (!stored || !attempt) return false;
+    if (String(stored).indexOf(HASH_PREFIX) === 0) {
+      return (await hashPassword(attempt)) === stored;
+    }
+    if (String(stored).indexOf('plain:') === 0) {
+      return String(stored).substring(6) === String(attempt);
+    }
+    return String(stored) === String(attempt);
+  }
 
   function _load() {
     try {
@@ -27,19 +55,24 @@ const AUTH = (function() {
 
   function onChange(fn) { _listeners.push(fn); }
 
-  // Verify a gabbai exists and PIN matches. Returns the gabbai row or null.
-  function _verify(gabbaiId, pin) {
+  // Verify a gabbai exists and password OR PIN matches.
+  async function _verify(gabbaiId, secret) {
     const gabs = DB.list('gabbais');
     const g = gabs.find(function(x) { return x.id === gabbaiId; });
     if (!g) return null;
     if (g.status === 'inactive') return null;
-    if (String(g.pin_code) !== String(pin)) return null;
-    return g;
+    // Try password_hash (preferred), then pin_code
+    if (g.password_hash) {
+      const ok = await verifyPassword(g.password_hash, secret);
+      if (ok) return g;
+    }
+    if (g.pin_code && String(g.pin_code) === String(secret)) return g;
+    return null;
   }
 
-  function login(gabbaiId, pin) {
-    const g = _verify(gabbaiId, pin);
-    if (!g) return { ok: false, error: 'שם משתמש או קוד שגויים' };
+  async function login(gabbaiId, secret) {
+    const g = await _verify(gabbaiId, secret);
+    if (!g) return { ok: false, error: 'שם משתמש או סיסמה שגויים' };
     const session = {
       gabbai_id: g.id,
       name: g.name,
@@ -48,6 +81,8 @@ const AUTH = (function() {
       logged_in_at: new Date().toISOString()
     };
     _save(session);
+    // Record last_login on the gabbai row (best-effort, not awaited)
+    try { DB.update('gabbais', g.id, { last_login: session.logged_in_at }); } catch (e) {}
     return { ok: true, session: session };
   }
 
@@ -77,6 +112,8 @@ const AUTH = (function() {
     logout: logout,
     onChange: onChange,
     actorId: actorId,
-    actorName: actorName
+    actorName: actorName,
+    hashPassword: hashPassword,
+    verifyPassword: verifyPassword
   };
 })();

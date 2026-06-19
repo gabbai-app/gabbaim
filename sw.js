@@ -1,6 +1,6 @@
 // Service Worker — cache-first for all static assets so the app works fully offline.
 // Bump CACHE_NAME when assets change.
-const CACHE_NAME = 'gabbai-v1-6';
+const CACHE_NAME = 'gabbai-v1-7';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -31,6 +31,7 @@ const STATIC_ASSETS = [
   './js/pages/settings.js',
   './js/pages/print.js',
   './js/pages/audit.js',
+  './js/pages/users.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
