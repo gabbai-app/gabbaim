@@ -262,10 +262,18 @@ const PAGE_LIVE = (function() {
   }
 
   async function _openSlotPicker(kavodName, tribe, category) {
+    // Track current tribe filter (can be relaxed when "כולל ישראל" clicked)
+    let activeTribe = tribe;
+    const isKohenOrLevi = tribe === 'כהן' || tribe === 'לוי';
+    const allowIsraelToggle = isKohenOrLevi
+      ? '<button id="includeIsrael" class="btn btn-sm btn-outline-warning mb-2" type="button">' +
+        '<i class="bi bi-people"></i> אין ' + tribe + '? — כלול גם ישראל</button>'
+      : '';
     const body = '<div class="search-bar mb-2">' +
-      '<input type="text" id="slotSearch" class="form-control form-control-lg" placeholder="חיפוש מתפלל…" autocomplete="off" autofocus>' +
+      '<input type="text" id="slotSearch" class="form-control form-control-lg" placeholder="חיפוש מתפלל או הקלד שם חדש…" autocomplete="off" autofocus>' +
       '</div>' +
-      '<h6 class="text-muted mt-2 mb-2">' +
+      allowIsraelToggle +
+      '<h6 class="text-muted mt-2 mb-2" id="pickHeader">' +
       (category === 'aliyah' ? 'המלצות (לא עלו זמן רב):' : 'מתפללים פעילים:') +
       '</h6>' +
       '<div id="suggList" class="pick-list">' + UI.skeleton(250) + '</div>';
@@ -292,19 +300,33 @@ const PAGE_LIVE = (function() {
       document.getElementById('suggList').innerHTML = UI.errorState('שגיאה: ' + e.message);
       return;
     }
-    _renderPickList(allSuggestions, kavodName, tribe, category);
+    _renderPickList(allSuggestions, kavodName, activeTribe, category);
+
+    // "Include Israel" toggle for Kohen/Levi slots
+    const includeBtn = document.getElementById('includeIsrael');
+    if (includeBtn) {
+      includeBtn.addEventListener('click', function() {
+        activeTribe = null;  // relax filter
+        includeBtn.classList.remove('btn-outline-warning');
+        includeBtn.classList.add('btn-warning');
+        includeBtn.innerHTML = '<i class="bi bi-check2"></i> כולל ישראל';
+        includeBtn.disabled = true;
+        document.getElementById('pickHeader').textContent = 'כל המתפללים (כולל ישראל) — אין ' + tribe + ':';
+        onSearch();  // re-trigger
+      });
+    }
 
     const search = document.getElementById('slotSearch');
     const onSearch = UTIL.debounce(async function() {
       const q = search.value.trim();
-      if (!q) { _renderPickList(allSuggestions, kavodName, tribe, category); return; }
+      if (!q) { _renderPickList(allSuggestions, kavodName, activeTribe, category); return; }
       try {
         const res = await API.read('searchMembersByName', { q: q }, { cacheTtl: 10000 });
         let filtered = res || [];
-        if (tribe === 'כהן') filtered = filtered.filter(function(m) { return m.tribe === 'כהן'; });
-        else if (tribe === 'לוי') filtered = filtered.filter(function(m) { return m.tribe === 'לוי'; });
-        else if (tribe === 'ישראל') filtered = filtered.filter(function(m) { return m.tribe === 'ישראל' || !m.tribe; });
-        _renderPickList(filtered, kavodName, tribe, category, q);
+        if (activeTribe === 'כהן') filtered = filtered.filter(function(m) { return m.tribe === 'כהן'; });
+        else if (activeTribe === 'לוי') filtered = filtered.filter(function(m) { return m.tribe === 'לוי'; });
+        else if (activeTribe === 'ישראל') filtered = filtered.filter(function(m) { return m.tribe === 'ישראל' || !m.tribe; });
+        _renderPickList(filtered, kavodName, activeTribe, category, q);
       } catch (e) {
         document.getElementById('suggList').innerHTML = UI.errorState('שגיאה: ' + e.message);
       }
@@ -315,23 +337,98 @@ const PAGE_LIVE = (function() {
   function _renderPickList(members, kavodName, tribe, category, query) {
     const list = document.getElementById('suggList');
     if (!list) return;
+
+    // Build "create new" button if user typed a query
+    const createBtn = query ? (
+      '<div class="member-row create-new" data-create-name="' + UTIL.escAttr(query) + '" style="background:#f0f9ff;border:2px dashed #0d6efd;cursor:pointer;">' +
+        '<div style="font-size:1.5em;color:#0d6efd;width:48px;height:48px;display:flex;align-items:center;justify-content:center;">+</div>' +
+        '<div class="info"><div class="name" style="color:#0d6efd;font-weight:bold;">צור מתפלל חדש: "' + UTIL.escHtml(query) + '"</div>' +
+        '<div class="meta">לחץ ליצירה מהירה (שם בלבד) ולשייך לעלייה</div></div>' +
+      '</div>'
+    ) : '';
+
     if (!members.length) {
-      list.innerHTML = UI.emptyState('לא נמצאו מתפללים מתאימים');
-      return;
+      list.innerHTML = createBtn || UI.emptyState('לא נמצאו מתפללים מתאימים');
+    } else {
+      list.innerHTML = createBtn + members.slice(0, 50).map(function(m) {
+        const last = m._lastDate && m._lastDate !== '0000-00-00' ? (UTIL.fmtDate(m._lastDate) + ' (' + UTIL.daysSince(m._lastDate) + ')') : 'מעולם לא';
+        const name = (m.first_name || '') + ' ' + (m.last_name || '');
+        return '<div class="member-row" data-pick="' + UTIL.escAttr(m.id) + '">' +
+          UTIL.avatarHtml(m) +
+          '<div class="info"><div class="name">' + (query ? UTIL.highlightSearch(name, query) : UTIL.escHtml(name)) + '</div>' +
+          '<div class="meta">עלייה אחרונה: ' + last + '</div></div>' +
+          UTIL.tribeBadge(m.tribe) + '</div>';
+      }).join('');
     }
-    list.innerHTML = members.slice(0, 50).map(function(m) {
-      const last = m._lastDate && m._lastDate !== '0000-00-00' ? (UTIL.fmtDate(m._lastDate) + ' (' + UTIL.daysSince(m._lastDate) + ')') : 'מעולם לא';
-      const name = (m.first_name || '') + ' ' + (m.last_name || '');
-      return '<div class="member-row" data-pick="' + UTIL.escAttr(m.id) + '">' +
-        UTIL.avatarHtml(m) +
-        '<div class="info"><div class="name">' + (query ? UTIL.highlightSearch(name, query) : UTIL.escHtml(name)) + '</div>' +
-        '<div class="meta">עלייה אחרונה: ' + last + '</div></div>' +
-        UTIL.tribeBadge(m.tribe) + '</div>';
-    }).join('');
+
     list.querySelectorAll('[data-pick]').forEach(function(row) {
       row.addEventListener('click', function() {
         _pickMember(row.dataset.pick, kavodName, category);
       });
+    });
+    list.querySelectorAll('[data-create-name]').forEach(function(row) {
+      row.addEventListener('click', function() {
+        _createAndPickMember(row.dataset.createName, kavodName, tribe, category);
+      });
+    });
+  }
+
+  async function _createAndPickMember(fullName, kavodName, tribe, category) {
+    const synId = STATE.get('currentSynagogueId');
+    // Split name into first/last by first space
+    const parts = fullName.trim().split(/\s+/);
+    const first = parts[0] || fullName;
+    const last = parts.slice(1).join(' ');
+
+    // Suggest tribe based on slot - if Kohen/Levi slot, default to that, else ישראל
+    const defaultTribe = (tribe === 'כהן' || tribe === 'לוי') ? tribe : 'ישראל';
+
+    // Quick confirmation modal with tribe selection
+    const html =
+      '<p>יצירת מתפלל חדש:</p>' +
+      '<div class="mb-2"><label class="form-label">שם פרטי</label>' +
+      '<input id="qcFirst" class="form-control" value="' + UTIL.escAttr(first) + '"></div>' +
+      '<div class="mb-2"><label class="form-label">שם משפחה</label>' +
+      '<input id="qcLast" class="form-control" value="' + UTIL.escAttr(last) + '"></div>' +
+      '<div class="mb-2"><label class="form-label">שבט</label>' +
+      '<select id="qcTribe" class="form-select">' +
+        '<option value="ישראל"' + (defaultTribe === 'ישראל' ? ' selected' : '') + '>ישראל</option>' +
+        '<option value="כהן"' + (defaultTribe === 'כהן' ? ' selected' : '') + '>כהן</option>' +
+        '<option value="לוי"' + (defaultTribe === 'לוי' ? ' selected' : '') + '>לוי</option>' +
+      '</select></div>' +
+      '<button id="qcSave" class="btn btn-primary w-100"><i class="bi bi-check"></i> שמור ושייך</button>';
+    UI.modal('צור מתפלל חדש', html);
+
+    document.getElementById('qcSave').addEventListener('click', async function() {
+      const fName = document.getElementById('qcFirst').value.trim();
+      const lName = document.getElementById('qcLast').value.trim();
+      const tribeVal = document.getElementById('qcTribe').value;
+      if (!fName) { UI.toast('שם פרטי חובה', 'warning'); return; }
+      try {
+        const newId = await API.write('addMember', {
+          first_name: fName,
+          last_name: lName,
+          tribe: tribeVal,
+          synagogue_id: synId,
+          status: 'active'
+        });
+        UI.toast('נוצר ' + fName, 'success');
+        // Now assign to slot
+        await API.write('logAliyah', {
+          member_id: newId,
+          synagogue_id: synId,
+          aliyah_name: kavodName,
+          aliyah_order: 0,
+          date: _currentDate,
+          channel: 'web',
+          reason: category === 'aliyah' ? 'רוטציה' : 'כיבוד'
+        });
+        UI.toast('נרשם לעלייה', 'success');
+        UI.closeModal();
+        render(document.getElementById('app'), _currentDate);
+      } catch (e) {
+        UI.toast('שגיאה: ' + e.message, 'danger');
+      }
     });
   }
 
