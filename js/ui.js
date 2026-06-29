@@ -162,14 +162,47 @@ const UI = (function() {
     const syns = STATE.get('synagogues') || [];
     sel.innerHTML = syns.map(function(s) {
       return '<option value="' + UTIL.escAttr(s.id) + '">' + UTIL.escHtml(s.name) + '</option>';
-    }).join('');
+    }).join('') + '<option value="__add__" style="font-style:italic;color:#fff;background:#0d6efd;">➕ הוסף מנין חדש…</option>';
     sel.value = STATE.get('currentSynagogueId') || '';
     sel.onchange = function() {
+      if (sel.value === '__add__') {
+        sel.value = STATE.get('currentSynagogueId') || '';
+        _openQuickAddMinyan();
+        return;
+      }
       STATE.setCurrentSynagogue(sel.value);
       applySynagogueTheme();
       ROUTER.refresh();
     };
     applySynagogueTheme();
+  }
+
+  async function _openQuickAddMinyan() {
+    const color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+    const html =
+      '<div class="mb-2"><label class="form-label">שם המנין/בית כנסת</label>' +
+      '<input id="qmName" class="form-control" placeholder="לדוגמה: מנין שני, בית כנסת המרכזי..." autofocus></div>' +
+      '<div class="mb-2"><label class="form-label">צבע (אופציונלי)</label>' +
+      '<input id="qmColor" type="color" class="form-control form-control-color" value="' + color + '"></div>' +
+      '<button id="qmSave" class="btn btn-primary w-100"><i class="bi bi-check"></i> צור מנין</button>';
+    modal('הוספת מנין חדש', html);
+    document.getElementById('qmSave').addEventListener('click', async function() {
+      const name = document.getElementById('qmName').value.trim();
+      const col = document.getElementById('qmColor').value;
+      if (!name) { toast('שם חובה', 'warning'); return; }
+      try {
+        const id = await API.write('addSynagogue', { name: name, color: col });
+        toast('המנין נוצר', 'success');
+        const syns = await API.read('listSynagogues');
+        STATE.set('synagogues', syns);
+        STATE.setCurrentSynagogue(id);
+        closeModal();
+        renderSynSelector();
+        ROUTER.refresh();
+      } catch (e) {
+        toast('שגיאה: ' + e.message, 'danger');
+      }
+    });
   }
 
   function applySynagogueTheme() {
