@@ -294,7 +294,7 @@ const PAGE_LIVE = (function() {
           m._lastDate = (lastMap[m.id] && lastMap[m.id].date) || '0000-00-00';
         });
         members.sort(function(a, b) { return String(a._lastDate).localeCompare(String(b._lastDate)); });
-        allSuggestions = members.slice(0, 30);
+        allSuggestions = members;  // show all - was sliced to 30
       }
     } catch (e) {
       document.getElementById('suggList').innerHTML = UI.errorState('שגיאה: ' + e.message);
@@ -350,7 +350,7 @@ const PAGE_LIVE = (function() {
     if (!members.length) {
       list.innerHTML = createBtn || UI.emptyState('לא נמצאו מתפללים מתאימים');
     } else {
-      list.innerHTML = createBtn + members.slice(0, 50).map(function(m) {
+      list.innerHTML = createBtn + members.slice(0, 500).map(function(m) {
         const last = m._lastDate && m._lastDate !== '0000-00-00' ? (UTIL.fmtDate(m._lastDate) + ' (' + UTIL.daysSince(m._lastDate) + ')') : 'מעולם לא';
         const name = (m.first_name || '') + ' ' + (m.last_name || '');
         return '<div class="member-row" data-pick="' + UTIL.escAttr(m.id) + '">' +
