@@ -123,6 +123,23 @@ const PAGE_SETTINGS = (function() {
       (perm === 'denied' ? '<p class="small text-danger mb-0">נחסם בהגדרות הדפדפן. כדי להפעיל: לחץ על המנעול ליד ה-URL → "הרשאות" → התראות</p>' : '') +
       '</div></div>';
 
+    // Email notifications
+    const savedEmail = localStorage.getItem('gabbai_notif_email') || '';
+    const savedFreq = localStorage.getItem('gabbai_notif_freq') || 'weekly';
+    html += '<div class="card mb-3"><div class="card-header"><i class="bi bi-envelope"></i> עדכונים במייל</div><div class="card-body">' +
+      '<p class="text-muted small mb-2">קבל סיכום של חיובי השבת, מנהגים מיוחדים, ועליות שטרם הוקצו.</p>' +
+      '<div class="mb-2"><label class="form-label">כתובת מייל</label>' +
+      '<input id="notifEmail" type="email" class="form-control" placeholder="name@example.com" value="' + UTIL.escAttr(savedEmail) + '"></div>' +
+      '<div class="mb-2"><label class="form-label">תדירות</label>' +
+      '<select id="notifFreq" class="form-select">' +
+        '<option value="off"' + (savedFreq === 'off' ? ' selected' : '') + '>כבוי</option>' +
+        '<option value="weekly"' + (savedFreq === 'weekly' ? ' selected' : '') + '>שבועי (יום חמישי)</option>' +
+        '<option value="daily"' + (savedFreq === 'daily' ? ' selected' : '') + '>יומי</option>' +
+      '</select></div>' +
+      '<button class="btn btn-primary" id="saveEmailBtn"><i class="bi bi-save"></i> שמור</button> ' +
+      '<button class="btn btn-outline-primary" id="testEmailBtn"><i class="bi bi-send"></i> שלח עכשיו (בדיקה)</button>' +
+      '</div></div>';
+
     // Stats / Danger zone
     html += '<div class="card mb-3"><div class="card-header"><i class="bi bi-info-circle"></i> מידע</div><div class="card-body">' +
       '<div class="row g-2 text-center small">' +
@@ -152,6 +169,40 @@ const PAGE_SETTINGS = (function() {
     });
     document.getElementById('importFile')?.addEventListener('change', _importFile);
     document.getElementById('resetBtn')?.addEventListener('click', _resetAll);
+
+    document.getElementById('saveEmailBtn')?.addEventListener('click', function() {
+      const e = document.getElementById('notifEmail').value.trim();
+      const f = document.getElementById('notifFreq').value;
+      if (e && !/.+@.+\..+/.test(e)) { UI.toast('כתובת מייל לא תקינה', 'warning'); return; }
+      localStorage.setItem('gabbai_notif_email', e);
+      localStorage.setItem('gabbai_notif_freq', f);
+      UI.toast('הגדרות נשמרו', 'success');
+    });
+
+    document.getElementById('testEmailBtn')?.addEventListener('click', async function() {
+      const email = document.getElementById('notifEmail').value.trim();
+      if (!email) { UI.toast('הזן כתובת מייל', 'warning'); return; }
+      // Build summary content via mailto
+      const info = (typeof CAL !== 'undefined') ? CAL.dayInfo(new Date()) : null;
+      const subject = 'גבאים — סיכום ' + (info ? info.dateHe : new Date().toLocaleDateString('he-IL'));
+      const lines = [
+        'בס"ד',
+        '',
+        'סיכום מהמערכת גבאים מעלה עמוס',
+        '',
+        info ? 'יום: ' + info.dateHe : '',
+        info && info.parsha ? 'פרשת ' + info.parsha : '',
+        '',
+        'לפתיחת המערכת: https://gabbai-app.github.io/gabbaim/',
+        '',
+        'בברכה'
+      ].filter(Boolean).join('\n');
+      const url = 'mailto:' + encodeURIComponent(email) +
+                  '?subject=' + encodeURIComponent(subject) +
+                  '&body=' + encodeURIComponent(lines);
+      window.location.href = url;
+      UI.toast('נפתח דוא"ל - בדוק את התיבה', 'info');
+    });
 
     document.getElementById('savePatBtn')?.addEventListener('click', async function() {
       const v = document.getElementById('patInput').value.trim();
