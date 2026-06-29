@@ -2489,5 +2489,11 @@
     "source": "maale-amos/phones.json"
   },
   "_version": 1782726642588,
-  "_updated_at": 1782726642588
+  "_updated_at": 1782726642588,
+  "_tombstones": {
+    "synagogues": [
+      "sg1",
+      "sg2"
+    ]
+  }
 }
