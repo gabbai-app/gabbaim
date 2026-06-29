@@ -166,9 +166,9 @@ const SYNC = (function() {
     return Object.values(byId);
   }
 
-  // Public: full sync. Pull remote, merge with local, write back if changed.
-  async function syncNow() {
-    if (!getPat()) { _setStatus('no_pat'); return; }
+  // Public: full sync with retry-on-conflict. Pull remote, merge with local, write back if changed.
+  async function syncNow(retryCount) {
+    retryCount = retryCount || 0;
     _setStatus('syncing');
     try {
       const remote = await _fetchRemoteWithSha();
@@ -191,6 +191,12 @@ const SYNC = (function() {
       _setStatus('idle');
       return true;
     } catch (e) {
+      // Retry on 409 conflict (someone else wrote between our read+write)
+      if (String(e.message).indexOf('409') >= 0 && retryCount < 3) {
+        console.log('sync conflict, retrying...', retryCount + 1);
+        await new Promise(function(r) { setTimeout(r, 500 + retryCount * 500); });
+        return syncNow(retryCount + 1);
+      }
       console.warn('sync failed', e);
       _setStatus('error', e.message);
       return false;
