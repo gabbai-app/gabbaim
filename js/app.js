@@ -12,8 +12,10 @@
   function _updateSyncBadge(status, error) {
     const badge = document.getElementById('syncBadge');
     if (!badge) return;
+    const lastSync = localStorage.getItem('gabbai_last_sync_at');
+    const lastSyncStr = lastSync ? new Date(lastSync).toLocaleTimeString('he-IL') : '?';
     const map = {
-      idle:    { cls: 'bg-success', icon: 'bi-cloud-check', title: 'מסונכרן' },
+      idle:    { cls: 'bg-success', icon: 'bi-cloud-check', title: 'מסונכרן · אחרון: ' + lastSyncStr },
       syncing: { cls: 'bg-info', icon: 'bi-arrow-repeat', title: 'מסנכרן…' },
       offline: { cls: 'bg-warning', icon: 'bi-wifi-off', title: 'אופליין — שמור מקומית' },
       error:   { cls: 'bg-danger', icon: 'bi-exclamation-circle', title: 'שגיאת סנכרון: ' + (error || '') },
