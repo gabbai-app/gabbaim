@@ -347,9 +347,27 @@ const API = (function() {
   function listGabbais() { return DB.list('gabbais'); }
   function addGabbai(args) { return DB.insert('gabbais', Object.assign({ status: 'active' }, args)); }
   function deleteGabbai(args) { return DB.remove('gabbais', args.id); }
+  function _tombstone(table, id) {
+    const db = DB.getRaw();
+    db._tombstones = db._tombstones || {};
+    db._tombstones[table] = db._tombstones[table] || [];
+    if (db._tombstones[table].indexOf(id) === -1) {
+      db._tombstones[table].push(id);
+      DB.setRaw(db);
+    }
+  }
+  function _untombstone(table, id) {
+    const db = DB.getRaw();
+    if (!db._tombstones || !db._tombstones[table]) return;
+    db._tombstones[table] = db._tombstones[table].filter(function(x) { return x !== id; });
+    DB.setRaw(db);
+  }
+
   function addSynagogue(args) {
     if (!args.name) throw new Error('שם בית כנסת חובה');
-    return DB.insert('synagogues', args);
+    const newId = DB.insert('synagogues', args);
+    _untombstone('synagogues', newId);
+    return newId;
   }
   function updateSynagogue(args) {
     const id = args.id;
@@ -357,7 +375,10 @@ const API = (function() {
     delete patch.id;
     return DB.update('synagogues', id, patch);
   }
-  function deleteSynagogue(args) { return DB.remove('synagogues', args.id); }
+  function deleteSynagogue(args) {
+    _tombstone('synagogues', args.id);
+    return DB.remove('synagogues', args.id);
+  }
 
   // Calendar passthroughs -------------------------------------------------
 
