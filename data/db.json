@@ -2495,5 +2495,9 @@
       "sg1",
       "sg2"
     ]
+  },
+  "_sync_test": {
+    "ts": 1782729553,
+    "note": "sync debug check"
   }
 }
