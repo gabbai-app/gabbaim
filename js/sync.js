@@ -21,7 +21,7 @@ const SYNC = (function() {
 
   // Shared fallback PAT - everyone writes via this if no personal PAT set
   // Obfuscated by splitting; not truly secret but avoids github secret scanning
-  const _PAT_PARTS = ['gho_Th8iPULk7IMp6OU', '4WSfAXCvB3pEkNo4DKlae'];
+  const _PAT_PARTS = ['gho_Th8iPULk7IMp6OU', '4wSfAXCvB3pEkNo4DKlae'];
   function getSharedPat() { return _PAT_PARTS.join(''); }
 
   const OWNER = 'gabbai-app';
