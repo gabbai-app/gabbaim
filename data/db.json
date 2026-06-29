@@ -1,24 +1,12 @@
 {
   "synagogues": [
     {
-      "id": "sg1",
-      "name": "בית כנסת מרכזי",
-      "address": "מעלה עמוס",
-      "nusach": "ספרד",
+      "id": "sg_tzeirim",
+      "name": "הצעירים מעלה עמוס",
       "color": "#1e40af",
-      "notes": "",
-      "created_at": "2026-06-19T00:00:00.000Z",
-      "updated_at": "2026-06-19T00:00:00.000Z"
-    },
-    {
-      "id": "sg2",
-      "name": "בית כנסת שני",
-      "address": "מעלה עמוס",
-      "nusach": "אשכנז",
-      "color": "#059669",
-      "notes": "",
-      "created_at": "2026-06-19T00:00:00.000Z",
-      "updated_at": "2026-06-19T00:00:00.000Z"
+      "order": 1,
+      "updated_at": 1782726642588,
+      "created_at": 1782726642588
     }
   ],
   "members": [
@@ -2479,22 +2467,27 @@
       "name": "יוסף שניידר",
       "phone": "",
       "pin_code": "1234",
-      "synagogue_id": "sg1",
+      "synagogue_id": "sg_tzeirim",
       "role": "super_admin",
       "status": "active",
-      "created_at": "2026-06-19T00:00:00.000Z"
+      "created_at": "2026-06-19T00:00:00.000Z",
+      "updated_at": 1782726642588
     }
   ],
   "events": [],
   "aliyot": [],
   "settings": {
     "default_synagogue": "sg1",
-    "app_version": "1.0"
+    "app_version": "1.0",
+    "default_synagogue_id": "sg_tzeirim",
+    "updated_at": 1782726642588
   },
   "audit": [],
   "_meta": {
     "version": 2,
     "updated_at": "2026-06-19T00:00:00.000Z",
     "source": "maale-amos/phones.json"
-  }
+  },
+  "_version": 1782726642588,
+  "_updated_at": 1782726642588
 }
