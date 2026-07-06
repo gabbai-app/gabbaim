@@ -17,7 +17,6 @@ DB = json.load(open(os.path.join(SITE, 'data', 'db.json'), encoding='utf-8'))
 # === Kavodot definitions (mirroring js/kavodot.js) ===
 # Shabbat regular
 SHABBAT_KAVODOT = [
-    ('אנעים זמירות', 'special'),
     ('פתיחה + הכנסה', 'opening'),
     ('כהן', 'aliyah'),
     ('לוי', 'aliyah'),
@@ -82,7 +81,7 @@ def kavodot_for_page(p):
         return YOM_KIPPUR_KAVODOT
     return YOM_TOV_KAVODOT
 
-N_ROWS = 40  # 40 empty numbered rows
+N_ROWS = 47  # empty numbered rows — fills the page to margins (with bigger font)
 
 def esc(s):
     return (s or '').replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
@@ -255,22 +254,22 @@ body {{ direction: rtl; }}
 .page-date .greg {{ direction: ltr; display: inline-block; }}
 
 .table-wrap {{ flex: 1; overflow: hidden; }}
-.kavodot-table {{ width: 100%; border-collapse: collapse; font-size: 8.5px; margin: 0; table-layout: fixed; }}
+.kavodot-table {{ width: 100%; border-collapse: collapse; font-size: 11px; margin: 0; table-layout: fixed; }}
 .kavodot-table th {{
   background: #24594a; color: {body_color};
   padding: 4px 1px; font-weight: 700; border: 1px solid #17372c;
   text-align: center;
-  height: 90px;
+  height: 105px;
   vertical-align: bottom;
 }}
-.kavodot-table th.col-num, .kavodot-table th.col-name {{ height: 24px; vertical-align: middle; }}
+.kavodot-table th.col-num, .kavodot-table th.col-name {{ height: 26px; vertical-align: middle; }}
 .col-h {{
   writing-mode: vertical-lr;
   transform: rotate(180deg);
   text-orientation: mixed;
   white-space: nowrap;
-  font-size: 8px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 700;
   padding: 2px 0;
 }}
 .kavodot-table th.cat-aliyah {{ background: #1e5136; }}
@@ -279,13 +278,13 @@ body {{ direction: rtl; }}
 .kavodot-table th.cat-reading {{ background: #204d29; }}
 .kavodot-table th.cat-special {{ background: #6b4c00; }}
 .kavodot-table td {{
-  padding: 2px 3px; border: 1px solid #b8a970; text-align: center;
-  height: 14px; font-size: 8px;
+  padding: 3px 3px; border: 1px solid #b8a970; text-align: center;
+  height: 15px; font-size: 10.5px;
 }}
-.col-num {{ width: 18px; }}
-.col-name {{ width: 22%; }}
-.kavodot-table .row-num {{ color: {accent}; font-weight: 700; font-size: 9px; }}
-.kavodot-table .row-name {{ text-align: right; padding-right: 4px; font-weight: 600; }}
+.col-num {{ width: 20px; }}
+.col-name {{ width: 20%; }}
+.kavodot-table .row-num {{ color: {accent}; font-weight: 800; font-size: 11px; }}
+.kavodot-table .row-name {{ text-align: right; padding-right: 4px; font-weight: 600; font-size: 11px; }}
 .kavodot-table tbody tr.zebra-a td {{ background: #f0e6c9; }}
 .kavodot-table tbody tr.zebra-b td {{ background: {body_color}; }}
 
