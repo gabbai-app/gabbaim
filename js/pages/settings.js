@@ -22,11 +22,9 @@ const PAGE_SETTINGS = (function() {
     html += '<div class="card mb-3"><div class="card-header">' +
       '<i class="bi bi-journal-bookmark"></i> חוברת גבאים להדפסה — תשפ״ו-תשפ״ז' +
       '</div><div class="card-body">' +
-      '<p class="text-muted mb-2" style="font-size:0.9rem">כל שבת וחג עם קריאה מהשבת הקרובה עד כ״ט אלול תשפ״ז. הדפס A4 לרוחב.</p>' +
-      '<a href="booklet/booklet_sg1.html" target="_blank" class="btn btn-outline-primary me-2 mb-1">' +
-      '<i class="bi bi-file-earmark-pdf"></i> חוברת בית כנסת מרכזי</a>' +
-      '<a href="booklet/booklet_sg2.html" target="_blank" class="btn btn-outline-primary mb-1">' +
-      '<i class="bi bi-file-earmark-pdf"></i> חוברת בית כנסת שני</a>' +
+      '<p class="text-muted mb-2" style="font-size:0.9rem">כל שבת וחג עם כל הכיבודים. 40 שורות ריקות לשמות. A4 לאורך.</p>' +
+      '<a href="booklet/booklet_sg_tzeirim.html" target="_blank" class="btn btn-outline-primary mb-1">' +
+      '<i class="bi bi-file-earmark-pdf"></i> חוברת גבאים — הצעירים מעלה עמוס</a>' +
       '</div></div>';
 
     // Synagogues
