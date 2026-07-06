@@ -15,10 +15,10 @@ PAGES = json.load(open(os.path.join(SITE, '_pages.json'), encoding='utf-8'))
 DB = json.load(open(os.path.join(SITE, 'data', 'db.json'), encoding='utf-8'))
 
 # === Kavodot definitions (mirroring js/kavodot.js) ===
-# Shabbat regular: פתיחות + 8 עליות + הגבהה/גלילה + הפטרה + הכנסה + מנחה
+# Shabbat regular
 SHABBAT_KAVODOT = [
     ('אנעים זמירות', 'special'),
-    ('פתיחה והוצאה', 'opening'),
+    ('פתיחה + הכנסה', 'opening'),
     ('כהן', 'aliyah'),
     ('לוי', 'aliyah'),
     ('שלישי', 'aliyah'),
@@ -30,22 +30,18 @@ SHABBAT_KAVODOT = [
     ('הגבהה', 'lift'),
     ('גלילה', 'wrap'),
     ('הפטרה', 'reading'),
-    ('הכנסה', 'closing'),
-    ('פתיחה מוסף', 'opening'),
-    ('חזן מוסף', 'special'),
-    ('פת׳ מנחה', 'opening'),
+    ('פתיחת ארון (מוסף)', 'opening'),
+    ('פת׳ + הכ׳ (מנחה)', 'opening'),
     ('כהן (מנחה)', 'aliyah'),
     ('לוי (מנחה)', 'aliyah'),
     ('שלישי (מנחה)', 'aliyah'),
     ('הגב׳ (מנחה)', 'lift'),
     ('גל׳ (מנחה)', 'wrap'),
-    ('הכ׳ (מנחה)', 'closing'),
-    ('חזן מנחה', 'special'),
 ]
 
-# Yom Tov (Israel): 5 aliyot + מפטיר + haftara + 2 hagbaha/gelila + חזנים
+# Yom Tov (Israel)
 YOM_TOV_KAVODOT = [
-    ('פת׳ ס״ת א', 'opening'),
+    ('פתיחה + הכנסה', 'opening'),
     ('הוצאת ס״ת ב', 'opening'),
     ('כהן', 'aliyah'),
     ('לוי', 'aliyah'),
@@ -58,15 +54,12 @@ YOM_TOV_KAVODOT = [
     ('הגבהה ב', 'lift'),
     ('גלילה ב', 'wrap'),
     ('הפטרה', 'reading'),
-    ('הכנסה', 'closing'),
-    ('חזן מוסף', 'special'),
-    ('חזן מנחה', 'special'),
 ]
 
 YOM_KIPPUR_KAVODOT = [
-    ('פת׳ ארון - כל נדרי', 'opening'),
+    ('פת׳ ארון — כל נדרי', 'opening'),
     ('כל נדרי', 'special'),
-    ('פת׳ שחרית', 'opening'),
+    ('פת׳ + הכ׳ (שחרית)', 'opening'),
     ('כהן', 'aliyah'),
     ('לוי', 'aliyah'),
     ('שלישי', 'aliyah'),
@@ -77,9 +70,7 @@ YOM_KIPPUR_KAVODOT = [
     ('הגבהה', 'lift'),
     ('גלילה', 'wrap'),
     ('הפטרה (יונה)', 'reading'),
-    ('הכנסה', 'closing'),
-    ('פת׳ ארון - נעילה', 'opening'),
-    ('חזן נעילה', 'special'),
+    ('פת׳ ארון — נעילה', 'opening'),
 ]
 
 def kavodot_for_page(p):
