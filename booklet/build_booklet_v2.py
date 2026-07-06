@@ -15,70 +15,84 @@ PAGES = json.load(open(os.path.join(SITE, '_pages.json'), encoding='utf-8'))
 DB = json.load(open(os.path.join(SITE, 'data', 'db.json'), encoding='utf-8'))
 
 # === Kavodot definitions (mirroring js/kavodot.js) ===
-# Shabbat regular
+# Shabbat regular — service tag: 'sh' = שחרית, 'mn' = מנחה
 SHABBAT_KAVODOT = [
-    ('פתיחה + הכנסה', 'opening'),
-    ('כהן', 'aliyah'),
-    ('לוי', 'aliyah'),
-    ('שלישי', 'aliyah'),
-    ('רביעי', 'aliyah'),
-    ('חמישי', 'aliyah'),
-    ('שישי', 'aliyah'),
-    ('שביעי', 'aliyah'),
-    ('מפטיר', 'aliyah'),
-    ('הגבהה', 'lift'),
-    ('גלילה', 'wrap'),
-    ('הפטרה', 'reading'),
-    ('פתיחת ארון (מוסף)', 'opening'),
-    ('פת׳ + הכ׳ (מנחה)', 'opening'),
-    ('כהן (מנחה)', 'aliyah'),
-    ('לוי (מנחה)', 'aliyah'),
-    ('שלישי (מנחה)', 'aliyah'),
-    ('הגב׳ (מנחה)', 'lift'),
-    ('גל׳ (מנחה)', 'wrap'),
+    ('פתיחה + הכנסה', 'opening', 'sh'),
+    ('כהן', 'aliyah', 'sh'),
+    ('לוי', 'aliyah', 'sh'),
+    ('שלישי', 'aliyah', 'sh'),
+    ('רביעי', 'aliyah', 'sh'),
+    ('חמישי', 'aliyah', 'sh'),
+    ('שישי', 'aliyah', 'sh'),
+    ('שביעי', 'aliyah', 'sh'),
+    ('מפטיר + הפטרה', 'aliyah', 'sh'),
+    ('הגבהה', 'lift', 'sh'),
+    ('גלילה', 'wrap', 'sh'),
+    ('פת׳ + הכ׳', 'opening', 'mn'),
+    ('כהן', 'aliyah', 'mn'),
+    ('לוי', 'aliyah', 'mn'),
+    ('שלישי', 'aliyah', 'mn'),
+    ('הגבהה', 'lift', 'mn'),
+    ('גלילה', 'wrap', 'mn'),
 ]
 
-# Yom Tov (Israel)
+# Yom Tov (Israel) — all שחרית
 YOM_TOV_KAVODOT = [
-    ('פתיחה + הכנסה', 'opening'),
-    ('הוצאת ס״ת ב', 'opening'),
-    ('כהן', 'aliyah'),
-    ('לוי', 'aliyah'),
-    ('שלישי', 'aliyah'),
-    ('רביעי', 'aliyah'),
-    ('חמישי', 'aliyah'),
-    ('מפטיר', 'aliyah'),
-    ('הגבהה א', 'lift'),
-    ('גלילה א', 'wrap'),
-    ('הגבהה ב', 'lift'),
-    ('גלילה ב', 'wrap'),
-    ('הפטרה', 'reading'),
+    ('פתיחה + הכנסה', 'opening', 'sh'),
+    ('הוצאת ס״ת ב', 'opening', 'sh'),
+    ('כהן', 'aliyah', 'sh'),
+    ('לוי', 'aliyah', 'sh'),
+    ('שלישי', 'aliyah', 'sh'),
+    ('רביעי', 'aliyah', 'sh'),
+    ('חמישי', 'aliyah', 'sh'),
+    ('מפטיר + הפטרה', 'aliyah', 'sh'),
+    ('הגבהה א', 'lift', 'sh'),
+    ('גלילה א', 'wrap', 'sh'),
+    ('הגבהה ב', 'lift', 'sh'),
+    ('גלילה ב', 'wrap', 'sh'),
 ]
 
+# Simchat Torah (Israel = combined with שמיני עצרת)
+SIMCHAT_TORAH_KAVODOT = [
+    ('פתיחה + הכנסה', 'opening', 'sh'),
+    ('הוצאת ס״ת ב', 'opening', 'sh'),
+    ('כל הנערים', 'aliyah', 'sh'),
+    ('חתן תורה', 'aliyah', 'sh'),
+    ('חתן בראשית', 'aliyah', 'sh'),
+    ('מפטיר + הפטרה', 'aliyah', 'sh'),
+    ('הגבהה א', 'lift', 'sh'),
+    ('גלילה א', 'wrap', 'sh'),
+    ('הגבהה ב', 'lift', 'sh'),
+    ('גלילה ב', 'wrap', 'sh'),
+    ('הקפות', 'special', 'sh'),
+]
+
+# Yom Kippur — separate שחרית vs נעילה
 YOM_KIPPUR_KAVODOT = [
-    ('פת׳ ארון — כל נדרי', 'opening'),
-    ('כל נדרי', 'special'),
-    ('פת׳ + הכ׳ (שחרית)', 'opening'),
-    ('כהן', 'aliyah'),
-    ('לוי', 'aliyah'),
-    ('שלישי', 'aliyah'),
-    ('רביעי', 'aliyah'),
-    ('חמישי', 'aliyah'),
-    ('שישי', 'aliyah'),
-    ('מפטיר', 'aliyah'),
-    ('הגבהה', 'lift'),
-    ('גלילה', 'wrap'),
-    ('הפטרה (יונה)', 'reading'),
-    ('פת׳ ארון — נעילה', 'opening'),
+    ('פת׳ ארון — כל נדרי', 'opening', 'sh'),
+    ('כל נדרי', 'special', 'sh'),
+    ('פת׳ + הכ׳ (שחרית)', 'opening', 'sh'),
+    ('כהן', 'aliyah', 'sh'),
+    ('לוי', 'aliyah', 'sh'),
+    ('שלישי', 'aliyah', 'sh'),
+    ('רביעי', 'aliyah', 'sh'),
+    ('חמישי', 'aliyah', 'sh'),
+    ('שישי', 'aliyah', 'sh'),
+    ('מפטיר יונה', 'aliyah', 'sh'),
+    ('הגבהה', 'lift', 'sh'),
+    ('גלילה', 'wrap', 'sh'),
+    ('פת׳ ארון — נעילה', 'opening', 'mn'),
 ]
 
 def kavodot_for_page(p):
-    """Return list of (name, cat) for the day type."""
+    """Return list of (name, cat, service) for the day type."""
     if p['kind'] == 'shabbat':
         return SHABBAT_KAVODOT
     hol = p.get('holiday') or p.get('title', '')
     if 'יום הכיפורים' in hol:
         return YOM_KIPPUR_KAVODOT
+    if 'שמיני עצרת' in hol or 'שמחת תורה' in hol:
+        return SIMCHAT_TORAH_KAVODOT
     return YOM_TOV_KAVODOT
 
 N_ROWS = 47  # empty numbered rows — fills the page to margins (with bigger font)
@@ -148,14 +162,14 @@ def build_booklet(synagogue, out_file):
 
         # Kavodot header row - rotated text for narrow columns
         headers_html = ''.join([
-            f'<th class="cat-{cat}"><div class="col-h">{esc(name)}</div></th>'
-            for name, cat in kavodot
+            f'<th class="cat-{cat} svc-{svc}"><div class="col-h">{esc(name)}</div></th>'
+            for name, cat, svc in kavodot
         ])
 
         rows_html = []
         for i in range(1, N_ROWS + 1):
             zc = 'zebra-a' if i % 2 == 1 else 'zebra-b'
-            cells = ''.join(['<td></td>'] * n_cols)
+            cells = ''.join([f'<td class="svc-{svc}"></td>' for _, _, svc in kavodot])
             rows_html.append(
                 f'<tr class="{zc}"><td class="row-num">{i}</td><td class="row-name"></td>{cells}</tr>'
             )
@@ -272,11 +286,11 @@ body {{ direction: rtl; }}
   font-weight: 700;
   padding: 2px 0;
 }}
-.kavodot-table th.cat-aliyah {{ background: #1e5136; }}
-.kavodot-table th.cat-opening, .kavodot-table th.cat-closing {{ background: #0c3d47; }}
-.kavodot-table th.cat-lift, .kavodot-table th.cat-wrap {{ background: #4a1e4d; }}
-.kavodot-table th.cat-reading {{ background: #204d29; }}
-.kavodot-table th.cat-special {{ background: #6b4c00; }}
+/* Service colors override category — שחרית = ירוק כהה, מנחה = כחול כהה */
+.kavodot-table th.svc-sh {{ background: #1a5c3a; }}
+.kavodot-table th.svc-mn {{ background: #1e3a5f; }}
+.kavodot-table tbody tr.zebra-a td.svc-mn {{ background: #dce8f1; }}
+.kavodot-table tbody tr.zebra-b td.svc-mn {{ background: #eaf2f7; }}
 .kavodot-table td {{
   padding: 3px 3px; border: 1px solid #b8a970; text-align: center;
   height: 15px; font-size: 10.5px;
